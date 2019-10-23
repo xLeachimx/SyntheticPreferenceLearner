@@ -68,7 +68,7 @@ class Example:
         if self.pair[0] == other.pair[0] and self.pair[1] == other.pair[1]:
             return self.relation == other.relation
         elif self.pair[0] == other.pair[1] and self.pair[1] == other.pair[0]:
-            return self.relation == other.relation.inverse()
+            return self.relation == other.relation.reverse()
         else:
             return False
 

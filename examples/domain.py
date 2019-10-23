@@ -26,6 +26,25 @@ class Domain:
         self.attributes = len(self.value)
 
     # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the number of attributes.
+    def length(self):
+        return self.attributes
+
+    # Precond:
+    #   attribute is an integer representing an attribute.
+    #
+    # Postcond:
+    #   Returns the number of values associated with the given attribute.
+    #   Returns 0 if a bad attribute is given.
+    def attr_length(self, attribute):
+        if attribute < 0 or attribute >= self.attributes:
+            return 0
+        return self.value[attribute]
+
+    # Precond:
     #   alt is a valid Alternative object for this domain, or None.
     #
     # Postcond:

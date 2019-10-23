@@ -77,3 +77,31 @@ class Domain:
             else:
                 return alt
         return alt
+
+    # Precond:
+    #   line is a valid string.
+    #
+    # Postcond:
+    #   Parses the string into a domain object.
+    #   If parseing fails None is returned.
+    #   See example_set_file_specification.md for details.
+    @staticmethod
+    def parse(line):
+        line = line.strip().lower()
+        if line[0] != 'd':
+            return None
+        contents = line.split(' ')
+        attrs = contents[0]
+        values = contents[1:]
+        if attrs < len(values):
+            return Domain(attrs,values)
+        return None
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the string representation of the domain.
+    def __str__(self):
+        str_vals = list(map(lambda x: str(x), self.value))
+        return ' '.join(['d', str(self.attributes), ' '.join(str_vals)])

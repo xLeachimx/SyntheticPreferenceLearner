@@ -110,8 +110,8 @@ class Domain:
         if line[0] != 'd':
             return None
         contents = line.split(' ')
-        attrs = contents[0]
-        values = contents[1:]
+        attrs = contents[1]
+        values = contents[2:]
         if attrs < len(values):
             return Domain(attrs,values)
         return None

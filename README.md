@@ -5,3 +5,4 @@ An extensible python program which generates sets of synthetic preference exampl
 Dependencies:
 
   Pytorch
+  GenCPNet: https://github.com/nmattei/GenCPnet

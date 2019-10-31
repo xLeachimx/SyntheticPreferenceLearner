@@ -9,7 +9,7 @@
 
 import random
 from .cpynet import CPnet
-from .induced import PreferenceGraph
+from .preference_graph import PreferenceGraph
 
 # A class whose objects represent a CPT entry.
 # Conditions are represented by an outcome where:
@@ -159,7 +159,7 @@ class SimpleCPnet:
             if result[i] > self.domain[i]:
                 result[i] = 1
                 hold = 1
-        return result        
+        return result
 
     # Precond:
     #   outcome is a list of integers and a valid outcome in the domain.

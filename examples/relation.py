@@ -11,7 +11,7 @@
 #        1: alt1 is at least as preferred as alt2
 #        2: alt1 is strictly preferred to alt2
 #        3: alt1 is incomparable with alt2
-#   3 represent the same status
+#   3 and -3 represent the same status
 
 class Relation:
     # Precond:

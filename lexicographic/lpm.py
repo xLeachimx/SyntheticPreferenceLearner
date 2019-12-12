@@ -5,7 +5,7 @@
 #   Specifies a class for handling Lexicographic Preference Models.
 
 import random
-from ../examples/relation import Relation
+from ..examples.relation import Relation
 
 class LPM:
     # Precond:

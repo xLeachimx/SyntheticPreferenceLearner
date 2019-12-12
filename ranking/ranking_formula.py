@@ -4,7 +4,8 @@
 # Purpose:
 #   Define a ranking preference formula.
 
-from ../languages/pref_logic import PrefFormula
+from ..languages.pref_logic import PrefFormula
+from ..examples.relation import Relation
 
 class RankingPrefFormula:
     # Precond:
@@ -51,6 +52,26 @@ class RankingPrefFormula:
             if self.ranks[i].eval_CNF(alt):
                 return i+1
         return len(self.ranks)+1
+
+    # Precond:
+    #   alt1 is a valid Alternative object.
+    #   alt2 is a valud Alternative object.
+    #   dnf is a boolean which is true when DNF evaluation is used.
+    # Postcond:
+    #   Returns the relation between alt1 and alt2.
+    def compare(self, alt1, alt2, dnf=True):
+        rank1 = rank2 = 0
+        if dnf:
+            rank1 = self.eval_DNF(alt1)
+            rank2 = self.eval_DNF(alt2)
+        else:
+            rank1 = self.eval_CNF(alt1)
+            rank2 = self.eval_CNF(alt2)
+        if rank1 < rank2:
+            return Relation.strict_dispreference()
+        elif rank1 > rank2:
+            return Relation.strict_preference()
+        return Relation.equal()
 
     # Precond:
     #   clauses is the number of clauses per rank.

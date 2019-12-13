@@ -123,4 +123,4 @@ class Domain:
     #   Returns the string representation of the domain.
     def __str__(self):
         str_vals = list(map(lambda x: str(x), self.value))
-        return ' '.join(['d', str(self.attributes), ' '.join(str_vals)])
+        return ' '.join(['D', str(self.attributes), ' '.join(str_vals)])

@@ -57,6 +57,7 @@ class RankingPrefFormula:
     #   alt1 is a valid Alternative object.
     #   alt2 is a valud Alternative object.
     #   dnf is a boolean which is true when DNF evaluation is used.
+    # 
     # Postcond:
     #   Returns the relation between alt1 and alt2.
     def compare(self, alt1, alt2, dnf=True):

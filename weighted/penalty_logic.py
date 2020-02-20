@@ -6,7 +6,7 @@
 
 import random
 import math
-from ..languages.pref_logic import PrefFormula
+from ..utility.pref_logic import PrefFormula
 from ..examples.relation import Relation
 
 class PenaltyLogic:

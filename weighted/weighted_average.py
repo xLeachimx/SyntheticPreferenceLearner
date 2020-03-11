@@ -92,6 +92,15 @@ class WeightedAverage:
     #   None.
     #
     # Postcond:
+    #   Returns the string identifier of this class.
+    @staticmethod
+    def string_id():
+        return "WA"
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
     #   Returns a string representation of the WeightedAverage object.
     def __str__(self):
         result = str(self.domain) + "\n"

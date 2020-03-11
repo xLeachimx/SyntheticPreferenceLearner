@@ -108,6 +108,15 @@ class RankingPrefFormula:
     #   None.
     #
     # Postcond:
+    #   Returns the string identifier of this class.
+    @staticmethod
+    def string_id():
+        return "RPF"
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
     #   Returns a string representation of the ranking formula.
     def __str__(self):
         result = str(self.domain) + "\n"

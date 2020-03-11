@@ -85,7 +85,6 @@ class PrefLiteral:
         line = line.split(',')
         return PrefLiteral(int(line[0]),int(line[1]),negation)
 
-
     # Precond:
     #   None.
     #
@@ -185,7 +184,7 @@ class PrefFormula:
         for literal in line:
             result.literals.append(PrefLiteral.parse(literal))
         return result
-
+    
     # Precond:
     #   None.
     #

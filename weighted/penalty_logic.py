@@ -125,6 +125,15 @@ class PenaltyLogic:
     #   None.
     #
     # Postcond:
+    #   Returns the string identifier of this class.
+    @staticmethod
+    def string_id():
+        return "PenaltyLogic"
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
     #   Returns the string representation of tht PenaltyLogic object.
     def __str__(self):
         result = str(self.domain) + "\n"

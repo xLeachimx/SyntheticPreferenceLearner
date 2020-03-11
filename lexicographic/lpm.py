@@ -24,13 +24,16 @@ class LPM:
     #
     # Postcond:
     #   Creates a randomly built LPM.
-    def random(self):
-        self.importance = [i for i in range(self.domain.length())]
-        random.shuffle(self.importance)
-        self.orders = [[] for i in range(self.domain.length())]
-        for i in range(self.domain.length()):
-            self.orders[i] = [(j+1) for j in range(self.domain.attr_length(i))]
-            random.shuffle(self.orders[i])
+    @staticmethod
+    def random(domain):
+        result = LPM(domain)
+        result.importance = [i for i in range(domain.length())]
+        random.shuffle(result.importance)
+        result.orders = [[] for i in range(domain.length())]
+        for i in range(domain.length()):
+            result.orders[i] = [(j+1) for j in range(domain.attr_length(i))]
+            random.shuffle(result.orders[i])
+        return result
 
     # Precond:
     #   None.
@@ -91,6 +94,15 @@ class LPM:
                 order = int(line[0])
                 result.orders[order] = convertList(line[1:])
         return result
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the string identifier of this class.
+    @staticmethod
+    def string_id():
+        return "LPM"
 
     # Precond:
     #   None.

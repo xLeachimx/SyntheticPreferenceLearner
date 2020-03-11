@@ -13,11 +13,16 @@ class LPTNode:
     #
     # Postcond:
     #   Builds an empty LPTNode.
-    def __init__(leaf = False):
-        self.leaf = False
+    def __init__(self, leaf=False):
+        self.leaf = leaf
         self.attr = None
         self.cpt = None
         self.parents = []
+        self.children = []
+
+    # Precond:
+    #
+    #
 
 # Class for handling an entire LP-tree.
 class LPTree:

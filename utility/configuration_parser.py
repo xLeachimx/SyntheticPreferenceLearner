@@ -49,12 +49,26 @@ def parse_configuration(filename):
                     size = 0
                     line = fin.readline().strip().lower()
                     while(line != 'end'):
+                        if line[0] == '#':
+                            line = fin.readline()
+                            if(line == ''):
+                                return (None,[],False,"Missing End for agent " + str(len(agents)+1))
+                            line = line.strip().lower()
+                            continue
                         contents = line.split(':')
-                        contents = list(map(lambda x: x.strip().lower(), contents))
-                        if contents
-                        line = fin.readline().strip().lower()
+                        contents = list(map(lambda x: x.strip(), contents))
+                        if contents[0] == 'type':
+                            type = contents[1]
+                        elif contents[0] == 'size':
+                            size = contents[1]
+                        else:
+                            info[contents[0]] = contents[1]
+                        line = fin.readline()
+                        if(line == ''):
+                            return (None,[],False,"Missing End for agent " + str(len(agents)+1))
+                        line = line.strip().lower()
+                    agents.append(AgentHolder(type, size, info))
             line = fin.readline()
-
-
-
-    return (None,[], False, "Default Failure")
+    if domain is None:
+        return (None,[],False, 'No domain specified.')
+    return (domain,agents, True, "Success.")

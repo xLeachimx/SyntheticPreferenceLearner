@@ -40,7 +40,10 @@ def parse_configuration(filename):
         line = fin.readline()
         while(line != ''):
             line = line.strip().lower()
-            if line[0] != '#':
+            if line == '':
+                line = fin.readline()
+                continue
+            elif line[0] != '#':
                 if line[0] == 'd':
                     domain = Domain.parse(line)
                 elif line == 'agent':
@@ -49,7 +52,7 @@ def parse_configuration(filename):
                     size = 0
                     line = fin.readline().strip().lower()
                     while(line != 'end'):
-                        if line[0] == '#':
+                        if line[0] == '#' || line == '':
                             line = fin.readline()
                             if(line == ''):
                                 return (None,[],False,"Missing End for agent " + str(len(agents)+1))

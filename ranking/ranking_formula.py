@@ -75,18 +75,19 @@ class RankingPrefFormula:
         return Relation.equal()
 
     # Precond:
-    #   clauses is the number of clauses per rank.
-    #   literals is the number of literals per clause.
-    #   ranks is the number of ranks to generate.
     #   domain is a valid Domain object.
+    #   info is a valid dictionary with the following keys:
+    #       clauses is the number of clauses per rank.
+    #       literals is the number of literals per clause.
+    #       ranks is the number of ranks to generate.
     #
     # Postcond:
     #   Returns a random RankingPrefFormula object.
     @staticmethod
-    def random(clauses, literals, ranks, domain):
+    def random(domain, info):
         result = RankingPrefFormula(domain)
-        for i in range(ranks):
-            result.ranks.append(PrefFormula.random(clauses,literals))
+        for i in range(info['ranks']):
+            result.ranks.append(PrefFormula.random(info['clauses'],info['literals'],domain))
         return result
 
     # Precond:

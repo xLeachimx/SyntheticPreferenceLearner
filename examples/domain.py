@@ -7,6 +7,7 @@
 #
 
 from alternative import Alternative
+from random import randint
 
 class Domain:
     # Precond:
@@ -43,6 +44,19 @@ class Domain:
         if attribute < 0 or attribute >= self.attributes:
             return 0
         return self.value[attribute]
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns a random pair of alternatives.
+    def random_pair(self):
+        alt1 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
+        alt2 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
+        while alt1 == alt2:
+            alt2 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
+        return (alt1, alt2)
+
 
     # Precond:
     #   alt is a valid Alternative object for this domain, or None.

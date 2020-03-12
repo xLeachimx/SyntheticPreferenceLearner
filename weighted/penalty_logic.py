@@ -83,19 +83,20 @@ class PenaltyLogic:
 
 
     # Precond:
-    #   size is the number of formulas to generate.
-    #   clauses is the number of clauses per formula.
-    #   literals is the number of literals per clause.
     #   domain is a valid Domain object.
+    #   info is a valid dictionary with the following keys:
+    #       size is the number of formulas to generate.
+    #       clauses is the number of clauses per formula.
+    #       literals is the number of literals per clause.
     #
     # Postcond:
     #   Returns a randomly generated PenaltyLogic object.
     @staticmethod
-    def random(size, clauses, literals, domain):
+    def random(domain, info):
         result = PenaltyLogic(domain)
-        generate = lambda : PrefFormula.random(clauses,literals,domain)
-        result.formulas = [generate() for i in range(size)]
-        result.weights = [random.random for i in range(size)]
+        generate = lambda : PrefFormula.random(info['clauses'],info['literals'],domain)
+        result.formulas = [generate() for i in range(info['formulas'])]
+        result.weights = [random.random for i in range(info['formulas'])]
         total = 0.0
         for weight in result.weights:
             total += weight*weight

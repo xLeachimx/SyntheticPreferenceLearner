@@ -50,11 +50,12 @@ class WeightedAverage:
 
     # Precond:
     #   domain is a valid domain object.
+    #   info is a dictionary (no information used, but important for typing).
     #
     # Postcond:
     #   Returns a random WeightedAverage object.
     @staticmethod
-    def random(domain):
+    def random(domain, info):
         result = WeightedAverage(domain)
         dl = domain.length()
         result.weights = [random.random() for i in range(dl)]

@@ -20,12 +20,12 @@ class LPM:
 
 
     # Precond:
-    #   None.
+    #   info is a valid dictionary (data unused, but important for typing).
     #
     # Postcond:
     #   Creates a randomly built LPM.
     @staticmethod
-    def random(domain):
+    def random(domain, info):
         result = LPM(domain)
         result.importance = [i for i in range(domain.length())]
         random.shuffle(result.importance)

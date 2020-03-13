@@ -4,10 +4,14 @@
 # Purpose:
 #   Provides a class for dealing with penalty logic preference representations.
 
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
+
+
 import random
 import math
-from ..utility.pref_logic import PrefFormula
-from ..examples.relation import Relation
+from utility.pref_logic import PrefFormula
+from examples.relation import Relation
 
 class PenaltyLogic:
     # Precond:

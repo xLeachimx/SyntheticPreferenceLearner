@@ -5,7 +5,9 @@
 #   Handles parsing and storage of configuration files for the generation
 #   of synthetic preferences.
 
-from ..examples.domain import Domain
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
+from examples.domain import Domain
 
 # Holds data for a single agent.
 class AgentHolder:
@@ -52,7 +54,7 @@ def parse_configuration(filename):
                     size = 0
                     line = fin.readline().strip().lower()
                     while(line != 'end'):
-                        if line[0] == '#' || line == '':
+                        if line[0] == '#' or line == '':
                             line = fin.readline()
                             if(line == ''):
                                 return (None,[],False,"Missing End for agent " + str(len(agents)+1))
@@ -63,9 +65,9 @@ def parse_configuration(filename):
                         if contents[0] == 'type':
                             type = contents[1]
                         elif contents[0] == 'size':
-                            size = contents[1]
+                            size = int(contents[1])
                         else:
-                            info[contents[0]] = contents[1]
+                            info[contents[0]] = int(contents[1])
                         line = fin.readline()
                         if(line == ''):
                             return (None,[],False,"Missing End for agent " + str(len(agents)+1))

@@ -4,8 +4,11 @@
 # Purpose:
 #   Specifies a class for handling Lexicographic Preference Models.
 
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
+
 import random
-from ..examples.relation import Relation
+from examples.relation import Relation
 
 class LPM:
     # Precond:

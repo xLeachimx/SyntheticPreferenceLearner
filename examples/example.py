@@ -6,8 +6,8 @@
 # Notes:
 #   An example should be immutable for the most part.
 
-from alternative import Alternative
-from relation import Relation
+from .alternative import Alternative
+from .relation import Relation
 
 class Example:
     # Precond:

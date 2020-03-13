@@ -65,7 +65,7 @@ class PrefLiteral:
     @staticmethod
     def random(domain):
         attr = random.randint(0,domain.length()-1)
-        valud = random.randint(1,domain.attr_length(attr))
+        value = random.randint(1,domain.attr_length(attr))
         return PrefLiteral(attr,value,random.choice([True,False]))
 
     # Precond:
@@ -122,7 +122,7 @@ class PrefFormula:
             clause = False
             clauseIndex = i*self.lit_per_clause
             for j in range(self.lit_per_clause):
-                if self.literals(clauseIndex + j).match(alt):
+                if self.literals[clauseIndex + j].match(alt):
                     clause = True
                     break
             if not clause:
@@ -184,7 +184,7 @@ class PrefFormula:
         for literal in line:
             result.literals.append(PrefLiteral.parse(literal))
         return result
-    
+
     # Precond:
     #   None.
     #

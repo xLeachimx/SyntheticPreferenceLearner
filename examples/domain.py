@@ -6,7 +6,7 @@
 # Notes:
 #
 
-from alternative import Alternative
+from .alternative import Alternative
 from random import randint
 
 class Domain:
@@ -51,10 +51,10 @@ class Domain:
     # Postcond:
     #   Returns a random pair of alternatives, with a canonical ordering.
     def random_pair(self):
-        alt1 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
-        alt2 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
+        alt1 = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+        alt2 = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
         while alt1 == alt2:
-            alt2 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
+            alt2 = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
         for i in range(self.attributes):
             if alt1.value(i) < alt2.value(i):
                 return (alt1,alt2)
@@ -68,7 +68,7 @@ class Domain:
     # Precond:
     #   Returns a random set of pairs, with no two pairs repeating.
     def random_pair_set(self, size):
-        result = [self.random_pair() for i in size]
+        result = [self.random_pair() for i in range(size)]
         found = False
         while len(result) != size:
             temp = self.random_pair()
@@ -148,9 +148,10 @@ class Domain:
         if line[0] != 'd':
             return None
         contents = line.split(' ')
-        attrs = contents[1]
+        attrs = int(contents[1])
         values = contents[2:]
-        if attrs < len(values):
+        values = list(map(lambda x: int(x),values))
+        if attrs <= len(values):
             return Domain(attrs,values)
         return None
 

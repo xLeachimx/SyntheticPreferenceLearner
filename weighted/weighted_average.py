@@ -4,9 +4,13 @@
 # Purpose:
 #   Defines a class which handles weight average preference representations.
 
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
+
+
 import random
 import math
-from ..examples.relation import Relation
+from examples.relation import Relation
 
 class WeightedAverage:
     # Precond:

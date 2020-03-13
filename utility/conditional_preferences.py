@@ -3,8 +3,10 @@
 # Created On: 20 Feb 2020
 # Purpose:
 #   Contains general classes for dealing with conditional preferences.
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
 
-from ..examples.relation import Relation
+from examples.relation import Relation
 
 # Class for handling a single alternative condition.
 class Condition:

@@ -3,9 +3,11 @@
 # Created On: 12 Dec 2019
 # Purpose:
 #   Define a ranking preference formula.
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
 
-from ..utility.pref_logic import PrefFormula
-from ..examples.relation import Relation
+from utility.pref_logic import PrefFormula
+from examples.relation import Relation
 
 class RankingPrefFormula:
     # Precond:

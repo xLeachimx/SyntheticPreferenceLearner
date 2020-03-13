@@ -9,7 +9,7 @@ from weighted.weighted_average import WeightedAverage
 
 
 def main(args):
-    config = parse_configuration(args.config)
+    config = parse_configuration(args.config[0])
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage]
     agents = []
     # Build agents.
@@ -21,7 +21,7 @@ def main(args):
         temp_set = build_example_set(agent[0],agent[1],config[0])
         ex_set.add_example_list(temp_set.example_list())
     # Write example set to file.
-    with open(args.output,'w') as fout:
+    with open(args.output[0],'w') as fout:
         fout.write(str(config[0])+"\n")
         for example in ex_set.example_list():
             fout.write(str(example)+"\n")

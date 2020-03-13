@@ -49,13 +49,37 @@ class Domain:
     #   None.
     #
     # Postcond:
-    #   Returns a random pair of alternatives.
+    #   Returns a random pair of alternatives, with a canonical ordering.
     def random_pair(self):
         alt1 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
         alt2 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
         while alt1 == alt2:
             alt2 = Alternative([randint(1,len(self.value[i])) for i in range(self.attributes)])
+        for i in range(self.attributes):
+            if alt1.value(i) < alt2.value(i):
+                return (alt1,alt2)
+            elif alt1.value(i) > alt2.value(i):
+                return (alt2,alt1)
         return (alt1, alt2)
+
+    # Postcond:
+    #   size is an integer indicating the number of pairs to return.
+    #
+    # Precond:
+    #   Returns a random set of pairs, with no two pairs repeating.
+    def random_pair_set(self, size):
+        result = [self.random_pair() for i in size]
+        found = False
+        while len(result) != size:
+            temp = self.random_pair()
+            found = True
+            for pair in result:
+                if pair[0] == temp[0] and pair[1] == temp[1]:
+                    found = False
+                    break
+            if found:
+                result.append(temp)
+        return result
 
 
     # Precond:

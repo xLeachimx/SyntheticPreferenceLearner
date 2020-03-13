@@ -68,7 +68,7 @@ class ExampleSet(Dataset):
     #   None.
     #
     # Postcond:
-    #   Shuffles the lists, internally
+    #   Shuffles the lists, internally, per agent ID
     def shuffle(self):
         for id in self.examples:
             shuffle(self.examples[id])
@@ -82,6 +82,7 @@ class ExampleSet(Dataset):
         total = 0
         for id in self.examples:
             total += len(self.examples[id])
+        return total
 
     # Precond:
     #   i is the index of the example ot retrieve.
@@ -128,3 +129,5 @@ class ExampleSet(Dataset):
             yield (train,validation)
             del temp_train
             del temp_valid
+
+    # TODO: Parsing methods

@@ -112,9 +112,9 @@ class LPM:
     # Postcond:
     #   Builds a string representation of the LPM.
     def __str__(self):
-        result = str(domain)+"\n"
+        result = str(self.domain)+"\n"
         result += 'I '
         result += ' '.join(list(map(lambda x: str(x), self.importance))) + "\n"
         for i in range(len(self.orders)):
-            result += 'P ' + str(i) + ' '.join(list(map(lambda x: str(x), self.orders[i]))) + "\n"
+            result += 'P ' + str(i) + ' ' + ' '.join(list(map(lambda x: str(x), self.orders[i]))) + "\n"
         return result

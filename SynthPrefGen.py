@@ -1,4 +1,5 @@
 import argparse
+import os
 from examples.agent import Agent
 from examples.example_set import ExampleSet
 from utility.configuration_parser import AgentHolder, parse_configuration
@@ -9,12 +10,21 @@ from weighted.weighted_average import WeightedAverage
 
 
 def main(args):
+    print(args)
     config = parse_configuration(args.config[0])
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage]
     agents = []
     # Build agents.
     for agent in config[1]:
         agents.append(make_agent(agent,agent_types,config[0]))
+    # Write agents, if applicable
+    if args.agent_folder is not None:
+        if not os.path.isdir(args.agent_folder[0]):
+            os.mkdir(args.agent_folder[0])
+        for agent in agents:
+            a_file = args.agent_folder[0] + "/agent"+str(agent[0].id)+".pref"
+            with open(a_file, 'w') as fout:
+                fout.write(str(agent[0].model))
     # Build example set.
     ex_set = ExampleSet()
     for agent in agents:

@@ -95,6 +95,7 @@ class PrefLiteral:
         if self.negated:
             result += '-'
         result += ''.join(['(',str(self.attr),',',str(self.value),')'])
+        return result
 
 class PrefFormula:
     # Precond:
@@ -143,7 +144,7 @@ class PrefFormula:
             clause = False
             clauseIndex = i*self.lit_per_clause
             for j in range(self.lit_per_clause):
-                if not self.literals(clauseIndex + j).match(alt):
+                if not self.literals[clauseIndex + j].match(alt):
                     clause = False
                     break
             if clause:

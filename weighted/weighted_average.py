@@ -8,7 +8,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('..'))
 
 
-import random
+from random import random, shuffle
 import math
 from examples.relation import Relation
 
@@ -62,15 +62,16 @@ class WeightedAverage:
     def random(domain, info):
         result = WeightedAverage(domain)
         dl = domain.length()
-        result.weights = [random.random() for i in range(dl)]
-        result.orders = [[i for i in domain.attr_length(j)] for j in range(dl)]
-        result.orders = list(map(lambda x: random.shuffle(x), result.orders))
+        result.weights = [random() for i in range(dl)]
+        result.orders = [[i for i in range(domain.attr_length(j))] for j in range(dl)]
+        for i in range(len(result.orders)):
+            shuffle(result.orders[i])
         total = 0.0
         for weight in result.weights:
             total += weight*weight
         total = math.sqrt(total)
-        for i in range(result.weights):
-            result.weights = result.weights/total
+        for i in range(len(result.weights)):
+            result.weights[i] = result.weights[i]/total
         return result
 
 

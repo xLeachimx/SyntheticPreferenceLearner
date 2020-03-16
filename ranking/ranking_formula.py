@@ -125,3 +125,4 @@ class RankingPrefFormula:
         result = str(self.domain) + "\n"
         for i in range(len(self.ranks)):
             result += ' '.join(['P', str(self.ranks[i]), "\n"])
+        return result

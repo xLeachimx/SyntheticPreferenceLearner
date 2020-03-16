@@ -40,7 +40,7 @@ class PenaltyLogic:
     #   Evluation done on formulas is CNF.
     #   Defaults to -1 (impossible value)
     def eval_CNF(self, alt):
-        if not alt.matches(domain):
+        if not alt.matches(self.domain):
             return -1.0
         total = 0.0
         for i in range(len(self.formulas)):
@@ -56,7 +56,7 @@ class PenaltyLogic:
     #   Evluation done on formulas is DNF.
     #   Defaults to -1 (impossible value)
     def eval_DNF(self, alt):
-        if not alt.matches(domain):
+        if not alt.matches(self.domain):
             return -1.0
         total = 0.0
         for i in range(len(self.formulas)):
@@ -100,7 +100,7 @@ class PenaltyLogic:
         result = PenaltyLogic(domain)
         generate = lambda : PrefFormula.random(info['clauses'],info['literals'],domain)
         result.formulas = [generate() for i in range(info['formulas'])]
-        result.weights = [random.random for i in range(info['formulas'])]
+        result.weights = [random.random() for i in range(info['formulas'])]
         total = 0.0
         for weight in result.weights:
             total += weight*weight
@@ -143,6 +143,6 @@ class PenaltyLogic:
     def __str__(self):
         result = str(self.domain) + "\n"
         for i in range(len(self.formulas)):
-            result += ' ',join(['P',str(self.weights[i]),str(self.formulas[i])])
+            result += ' '.join(['P',str(self.weights[i]),str(self.formulas[i])])
             result += "\n"
         return result

@@ -9,6 +9,7 @@
 
 from random import shuffle
 from torch.utils.data import Dataset
+import torch
 
 class ExampleSet(Dataset):
     # Precond:
@@ -94,8 +95,22 @@ class ExampleSet(Dataset):
             if i >= len(self.examples[id]):
                 i -= len(self.examples[id])
             else:
-                return self.examples[id][i]
+                return self.prepare_example(self.examples[id][i])
         return None
+
+    # Precond:
+    #   example is a valid Example object.
+    #
+    # Postcond:
+    #   Turns an example into a structure which can be used for learning a
+    #   neural network.
+    def prepare_example(self, example):
+        label = torch.tensor(example.get_relation().neural_label())
+        pair = example.get_alts()
+        inp = pair[0].values + pair[1].values
+        inp = list(map(lambda x: float(x), inp))
+        inp = torch.tensor(inp)
+        return (inp,label)
 
     # Precond:
     #   n is an integer representing the number of folds.
@@ -112,16 +127,18 @@ class ExampleSet(Dataset):
             count = 0
             # Before the validation slice
             for id in self.examples:
-                count = len(self.examples[id])/n
-                temp_train.extend(self.examples[0:count*i])
+                # if len(self.examples[id]) <= 0:
+                #     continue
+                count = int(len(self.examples[id])/n)
+                temp_train.extend(self.examples[id][0:count*i])
             # The validation slice
             for id in self.examples:
-                count = len(self.examples[id])/n
-                temp_valid.extend(self.examples[count*i:count+(count*i)])
+                count = int(len(self.examples[id])/n)
+                temp_valid.extend(self.examples[id][count*i:count+(count*i)])
             # After the validation slice
             for id in self.examples:
-                count = len(self.examples[id])/n
-                temp_train.extend(self.examples[count+(count*i):])
+                count = int(len(self.examples[id])/n)
+                temp_train.extend(self.examples[id][count+(count*i):])
             train = ExampleSet()
             validation = ExampleSet()
             train.add_example_list(temp_train)

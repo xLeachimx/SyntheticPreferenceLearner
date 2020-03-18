@@ -56,6 +56,39 @@ class Relation:
     #   None.
     #
     # Postcond:
+    #   Returns a proper label for learning preference relations using a neural
+    #   network.
+    def neural_label(self):
+        if self.value == -2:
+            return [1.0,0.0,0.0,0.0,0.0,0.0]
+        elif self.value == -1:
+            return [0.0,1.0,0.0,0.0,0.0,0.0]
+        elif self.value == 0:
+            return [0.0,0.0,1.0,0.0,0.0,0.0]
+        elif self.value == 1:
+            return [0.0,0.0,0.0,1.0,0.0,0.0]
+        elif self.value == 2:
+            return [0.0,0.0,0.0,0.0,1.0,0.0]
+        else:
+            return [0.0,0.0,0.0,0.0,0.0,1.0]
+
+    # Precond:
+    #   label is a list of floating point values.
+    #
+    # Postcond:
+    #   Builds a new relation from the given label.
+    @staticmethod
+    def parse_label(label):
+        index = 0
+        for i in range(1,len(label)):
+            if label[index] < label[i]:
+                index = i
+        return Relation(index-2)
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
     #   Returns a string representation of the relation.
     def __str__(self):
         return str(self.value)

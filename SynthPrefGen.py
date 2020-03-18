@@ -2,11 +2,13 @@ import argparse
 import os
 from examples.agent import Agent
 from examples.example_set import ExampleSet
+from examples.relation import Relation
 from utility.configuration_parser import AgentHolder, parse_configuration
 from lexicographic.lpm import LPM
 from ranking.ranking_formula import RankingPrefFormula
 from weighted.penalty_logic import PenaltyLogic
 from weighted.weighted_average import WeightedAverage
+from neural.neural_preferences import train_neural_preferences, prepare_example
 
 
 def main(args):
@@ -37,6 +39,46 @@ def main(args):
             fout.write(str(example)+"\n")
     return
 
+def main_learn(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage]
+    agents = []
+    # Build agents and example sets.
+    pills = []
+    for holder in config[1]:
+        # 50 trials
+        training = 0.0
+        validation = 0.0
+        runs = 10
+        layers = [256,256,256]
+        pills.append('(' + holder.type + ')')
+        for i in range(runs):
+            print(i)
+            agent = make_agent(holder,agent_types,config[0])
+            ex_set = build_example_set(agent[0],agent[1],config[0])
+            for train, valid in ex_set.crossvalidation(5):
+                learner = train_neural_preferences(train,layers,1000,config[0])
+                training += evaluate(train,learner)
+                validation += evaluate(valid,learner)
+                pills.append('(' + str(training) + ';' + str(validation) + ')')
+        with open(args.output[0],'a') as fout:
+            fout.write(','.join(pills) + "\n")
+
+
+# Precond:
+#   ex_set is the example set to evaluate.
+#   learner is the learner to evaluate.
+#
+# Postcond:
+#   Returns the proportion of examples in the ex_set.
+def evaluate(ex_set, learner):
+    count = 0
+    for example in ex_set.example_list():
+        inp,_ = prepare_example(example)
+        label = Relation.parse_label(learner.forward(inp))
+        if label == example.get_relation():
+            count += 1
+    return count/float(len(ex_set))
 
 
 
@@ -78,4 +120,4 @@ def build_parser():
 
 
 if __name__=="__main__":
-    main(build_parser().parse_args())
+    main_learn(build_parser().parse_args())

@@ -44,25 +44,44 @@ def main_learn(args):
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage]
     agents = []
     # Build agents and example sets.
-    pills = []
     for holder in config[1]:
         # 50 trials
         training = 0.0
         validation = 0.0
-        runs = 10
+        runs = 5
         layers = [256,256,256]
-        pills.append('(' + holder.type + ')')
+        pills = []
+        pills.append('(' + holder.type + ';' + str(holder.size) +  ')')
         for i in range(runs):
-            print(i)
             agent = make_agent(holder,agent_types,config[0])
             ex_set = build_example_set(agent[0],agent[1],config[0])
+            proportion = ex_proport(ex_set)
+            proportion = list(map(lambda x: str(x),proportion))
+            proportion = ';'.join(proportion)
             for train, valid in ex_set.crossvalidation(5):
                 learner = train_neural_preferences(train,layers,1000,config[0])
-                training += evaluate(train,learner)
-                validation += evaluate(valid,learner)
-                pills.append('(' + str(training) + ';' + str(validation) + ')')
+                training = evaluate(train,learner)
+                validation = evaluate(valid,learner)
+                pills.append('(' + str(training) + ';' + str(validation) + ';' + proportion + ')')
+            del ex_set
+            del agent
         with open(args.output[0],'a') as fout:
             fout.write(','.join(pills) + "\n")
+        del pills
+
+# Precond:
+#   ex_set is a valid ExampleSet object
+#
+# Postcond:
+#   Returns a list which provides a break down of the proportion of each
+#   relation.
+def ex_proport(ex_set):
+    result = [0 for i in range(6)]
+    for ex in ex_set.example_list():
+        result[ex.get_relation().value+2] += 1
+    for i in range(len(result)):
+        result[i] = result[i]/float(len(ex_set))
+    return result
 
 
 # Precond:

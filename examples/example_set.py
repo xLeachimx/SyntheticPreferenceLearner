@@ -105,7 +105,8 @@ class ExampleSet(Dataset):
     #   Turns an example into a structure which can be used for learning a
     #   neural network.
     def prepare_example(self, example):
-        label = torch.tensor(example.get_relation().neural_label())
+        # label = torch.tensor(example.get_relation().neural_label())
+        label = example.get_relation().value + 2
         pair = example.get_alts()
         inp = pair[0].values + pair[1].values
         inp = list(map(lambda x: float(x), inp))
@@ -146,5 +147,10 @@ class ExampleSet(Dataset):
             yield (train,validation)
             del temp_train
             del temp_valid
+
+    def __str__(self):
+        ex = self.example_list()
+        ex = list(map(lambda x: str(x),ex))
+        return "\n".join(ex)
 
     # TODO: Parsing methods

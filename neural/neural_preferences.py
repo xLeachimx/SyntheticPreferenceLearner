@@ -25,7 +25,7 @@ class NeuralPreference(nn.Module):
             if i != 0:
                 x = self.internal(x)
             x = self.layers[i](x)
-        x = self.squash(x)
+        # x = self.squash(x)
         return x
 
 
@@ -36,7 +36,8 @@ class NeuralPreference(nn.Module):
 #   Turns an example into a structure which can be used for learning a neural
 #   network.
 def prepare_example(example):
-    label = torch.tensor(example.get_relation().neural_label())
+    # label = torch.tensor(example.get_relation().neural_label())
+    label = example.get_relation().value + 2
     pair = example.get_alts()
     inp = pair[0].values + pair[1].values
     inp = list(map(lambda x: float(x), inp))
@@ -54,7 +55,8 @@ def prepare_example(example):
 #   Trains and returns a neural net which has learned off the given example set.
 def train_neural_preferences(ex_set, layers, epochs, domain):
     result = NeuralPreference(layers, domain)
-    criterion = nn.L1Loss()
+    # criterion = nn.L1Loss()
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.ASGD(result.parameters(), lr=0.1)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
     for epoch in range(epochs):

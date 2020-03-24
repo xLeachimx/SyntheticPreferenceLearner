@@ -47,7 +47,7 @@ class RankingPrefFormula:
     # Postcond:
     #   Returns the first rank where the alternative matches the CNF formula.
     #   Defaults to returning # of ranks + 1.
-    def eval_DNF(self, alt):
+    def eval_CNF(self, alt):
         if not alt.matches(self.domain):
             return len(self.ranks)+1
         for i in range(len(self.ranks)):

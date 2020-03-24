@@ -52,7 +52,7 @@ class PenaltyLogic:
     #   alt is a valud Alternative object.
     #
     # Postcond:
-    #   Returns the numerical valus of the given alternative.
+    #   Returns the numerical value of the given alternative.
     #   Evluation done on formulas is DNF.
     #   Defaults to -1 (impossible value)
     def eval_DNF(self, alt):
@@ -72,13 +72,15 @@ class PenaltyLogic:
     # Postcond:
     #   Returns the relation between alt1 and alt2.
     def compare(self, alt1, alt2, dnf=True):
-        val1 = val2 = 0.0
+        val1 = 0.0
+        val2 = 0.0
         if dnf:
             val1 = self.eval_DNF(alt1)
             val2 = self.eval_DNF(alt2)
         else:
             val1 = self.eval_CNF(alt1)
             val2 = self.eval_CNF(alt2)
+        print(val1,val2)
         if val1 > val2:
             return Relation.strict_dispreference()
         elif val1 < val2:
@@ -98,13 +100,12 @@ class PenaltyLogic:
     @staticmethod
     def random(domain, info):
         result = PenaltyLogic(domain)
-        generate = lambda : PrefFormula.random(info['clauses'],info['literals'],domain)
-        result.formulas = [generate() for i in range(info['formulas'])]
-        result.weights = [random.random() for i in range(info['formulas'])]
+        for i in range(info['formulas']):
+            result.formulas.append(PrefFormula.random(info['clauses'],info['literals'],domain))
+            result.weights.append(random.random())
         total = 0.0
         for weight in result.weights:
-            total += weight*weight
-        total = math.sqrt(total)
+            total += weight
         result.weights = list(map(lambda x: x/total, result.weights))
         return result
 

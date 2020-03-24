@@ -1,5 +1,6 @@
 import argparse
 import os
+import torch
 from examples.agent import Agent
 from examples.example_set import ExampleSet
 from examples.relation import Relation
@@ -43,26 +44,38 @@ def main_learn(args):
     config = parse_configuration(args.config[0])
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage]
     agents = []
+    learn_device = None
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
     # Build agents and example sets.
     for holder in config[1]:
         # 50 trials
         training = 0.0
         validation = 0.0
-        runs = 5
+        runs = 1
         layers = [256,256,256]
         pills = []
         pills.append('(' + holder.type + ';' + str(holder.size) +  ')')
         for i in range(runs):
+            print(i)
             agent = make_agent(holder,agent_types,config[0])
             ex_set = build_example_set(agent[0],agent[1],config[0])
+            print(agent[0])
+            ex_set.to_tensors(learn_device)
             proportion = ex_proport(ex_set)
             proportion = list(map(lambda x: str(x),proportion))
             proportion = ';'.join(proportion)
             for train, valid in ex_set.crossvalidation(5):
+                # train.to_tensors(learn_device)
+                # valid.to_tensors(learn_device)
                 learner = train_neural_preferences(train,layers,1000,config[0])
                 training = evaluate(train,learner)
                 validation = evaluate(valid,learner)
-                pills.append('(' + str(training) + ';' + str(validation) + ';' + proportion + ')')
+                # pills.append('(' + str(training) + ';' + str(validation) + ')')
+                temp = ';'.join([str(training),str(validation),proportion])
+                pills.append('(' + temp + ')')
             del ex_set
             del agent
         with open(args.output[0],'a') as fout:

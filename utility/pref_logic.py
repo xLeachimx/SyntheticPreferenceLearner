@@ -138,10 +138,10 @@ class PrefFormula:
     #   DNF evaluation.
     #   Defaults to False
     def eval_DNF(self, alt):
-        clause = False
+        clause = True
         clauseIndex = 0
         for i in range(self.clauses):
-            clause = False
+            clause = True
             clauseIndex = i*self.lit_per_clause
             for j in range(self.lit_per_clause):
                 if not self.literals[clauseIndex + j].match(alt):

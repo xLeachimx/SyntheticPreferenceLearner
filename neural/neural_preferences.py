@@ -50,11 +50,14 @@ def prepare_example(example):
 #   layers is a list of integers indicating the layer sizes.
 #   epochs is an integer indicating the number of epochs to train for.
 #   domain is a valid Domain object.
+#   device is the device where the learner should reside.
 #
 # Postcond:
 #   Trains and returns a neural net which has learned off the given example set.
-def train_neural_preferences(ex_set, layers, epochs, domain):
+def train_neural_preferences(ex_set, layers, epochs, domain, device=None):
     result = NeuralPreference(layers, domain)
+    if device is not None:
+        result.to(device)
     # criterion = nn.L1Loss()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.ASGD(result.parameters(), lr=0.1)

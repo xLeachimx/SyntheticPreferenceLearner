@@ -112,5 +112,8 @@ venv.bak/
 agency/
 *.pref
 *.csv
+*.zip
+*.config
 learn.config
 learn-pl-proport.config
+timing.dat

@@ -23,6 +23,19 @@ class AgentHolder:
         self.size = size
         self.info = info
 
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns a string representation of the agent holder.
+    def __str__(self):
+        result = "AGENT\n"
+        result += "\ttype: " + self.type + "\n"
+        result += "\tsize: " + str(self.size) + "\n"
+        for item in self.info:
+            result += "\t" + str(item) + ": " + str(self.info[item]) + "\n"
+        result += "END\n"
+        return result
 
 # Precond:
 #   filename is the name of a valid configuration file.

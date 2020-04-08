@@ -80,7 +80,6 @@ class PenaltyLogic:
         else:
             val1 = self.eval_CNF(alt1)
             val2 = self.eval_CNF(alt2)
-        print(val1,val2)
         if val1 > val2:
             return Relation.strict_dispreference()
         elif val1 < val2:
@@ -108,6 +107,17 @@ class PenaltyLogic:
             total += weight
         result.weights = list(map(lambda x: x/total, result.weights))
         return result
+
+    # Precond:
+    #   domain is a valid Domain object.
+    #   info is a valid dictionary (data unused, but important for typing).
+    #
+    # Postcond:
+    #   Returns a pill string describing the specified PenalityLogic
+    @staticmethod
+    def pill_label(domain, info):
+        info_str = ';'.join([str(info['clauses']),str(info['literals']),str(info['formulas'])])
+        return info_str+';PenaltyLogic;'+ str(domain.length()) +';'+ str(domain.attr_length_largest())
 
     # Precond:
     #   Lines is a list of strings which describe a PenaltyLogic object.

@@ -136,10 +136,33 @@ class ConditionalPreference:
     #  Returns the ConditionalPreference object specfied by line.
     @staticmethod
     def parse(line):
-     line = line.strip().split(';')
-     order = list(map(lambda x: int(x),line[1].split(',')))
-     cond = Condition.parse(line[0])
-     return ConditionalPreference(cond,order)
+        line = line.strip().split(';')
+        order = list(map(lambda x: int(x),line[1].split(',')))
+        cond = Condition.parse(line[0])
+        return ConditionalPreference(cond,order)
+
+    # Precond:
+    #   conv is a valid CPYnet_CondPref object.
+    #   num is an array of all attributes.
+    #   convers is a list of lists containing canconicalized values.
+    #   over is the attribute being converted.
+    #
+    # Postcond:
+    #   Coverts the given conv into a SimpleCondPref object and stores it in
+    #   this object.
+    @staticmethod
+    def convert_CPYNet(conv, num, convers, over):
+        cond_dict = conv.pref[0]
+        order = []
+        cond = Condition()
+        # Convert the condition itself
+        for attr in conv.pref[0].keys():
+            converted = convers[num.index(attr)].index(conv.pref[0][attr])+1
+            cond.add_positive(num.index(attr),converted)
+        # Convert the preference list.
+        for val in conv.pref[1]:
+            order.append(convers[num.index(over)].index(val)+1)
+        return ConditionalPreference(cond,order)
 
 # Class for building and handling CPTs
 class CPT:

@@ -93,6 +93,17 @@ class RankingPrefFormula:
         return result
 
     # Precond:
+    #   domain is a valid Domain object.
+    #   info is a valid dictionary (data unused, but important for typing).
+    #
+    # Postcond:
+    #   Returns a pill string describing the specified RPF
+    @staticmethod
+    def pill_label(domain, info):
+        info_str = ';'.join([str(info['clauses']),str(info['literals']),str(info['ranks'])])
+        return info_str+';RPF;'+ str(domain.length()) +';'+ str(domain.attr_length_largest())
+
+    # Precond:
     #   lines is a list strings representing rank formulas (in order).
     #   domain is a valid Domain object.
     #

@@ -37,12 +37,13 @@
 
 - Each representation may specify additional configuration as needed.
 
-| Type                       | Additional Fields           |
-|----------------------------|-----------------------------|
-| Weighted Average           | N/A                         |
-| Penalty Logic              | Formulas, Clauses, Literals |
-| LPM                        | N/A                         |
-| Ranking Preference Formula | Clauses, Literals, Ranks    |
+| Type                       | Additional Fields           | Type Name    |
+|----------------------------|-----------------------------|--------------|
+| Weighted Average           | N/A                         | WA           |
+| Penalty Logic              | formulas, clauses, literals | PenaltyLogic |
+| LPM                        | N/A                         | LPM          |
+| Ranking Preference Formula | clauses, literals, ranks    | RPF          |
+| CP-net                     | indegree                    | CP-net       |
 
 ## Comments
 

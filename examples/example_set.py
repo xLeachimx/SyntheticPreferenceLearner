@@ -19,7 +19,6 @@ class ExampleSet(Dataset):
     #   Builds a new empty ExampleSet object
     def __init__(self):
         self.examples = {}
-        self.tensors = None
         self.examples['default'] = []
 
     # Precond:
@@ -30,8 +29,6 @@ class ExampleSet(Dataset):
     #   If there is no agent ID in the example the example is filed under
     #   the 'default' key.
     def add_example(self, example):
-        del self.tensors
-        self.tensors = None
         agent = example.get_agent()
         if agent is None:
             self.examples['default'].append(example)
@@ -41,28 +38,6 @@ class ExampleSet(Dataset):
             self.examples[agent].append(example)
 
     # Precond:
-    #   device is the Torch device where the tensors should be placed.
-    #
-    # Postcond:
-    #   Converts the examples into tensors and places them on the given
-    #   device.
-    def to_tensors(self,device=None):
-        self.tensors = {}
-        for id in self.examples:
-            if id not in self.tensors:
-                self.tensors[id] = []
-            for example in self.examples[id]:
-                label = torch.tensor(example.get_relation().value + 2)
-                pair = example.get_alts()
-                inp = pair[0].values + pair[1].values
-                inp = list(map(lambda x: float(x), inp))
-                inp = torch.tensor(inp)
-                if device is not None:
-                    inp.to(device)
-                    label.to(label)
-                self.tensors[id].append((inp,label))
-
-    # Precond:
     #   example is a valid Example object.
     #
     # Postcond:
@@ -70,8 +45,6 @@ class ExampleSet(Dataset):
     #   If there is no agent ID in the example the example is filed under
     #   the 'default' key.
     def add_example_list(self, examples):
-        del self.tensors
-        self.tensors = None
         for example in examples:
             agent = example.get_agent()
             if agent is None:
@@ -102,6 +75,65 @@ class ExampleSet(Dataset):
             shuffle(self.examples[id])
 
     # Precond:
+    #   example is a valid Example object.
+    #
+    # Postcond:
+    #   Turns an example into a structure which can be used for learning a neural
+    #   network.
+    def prepare_example(self, example):
+        # label = torch.tensor(example.get_relation().neural_label())
+        label = example.get_relation().value + 2
+        pair = example.get_alts()
+        inp = pair[0].values + pair[1].values
+        inp = list(map(lambda x: float(x), inp))
+        inp = torch.tensor(inp)
+        label = torch.tensor(label)
+        del pair
+        return (inp,label)
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Iterates through each examples (clumped by agent.)
+    def each(self):
+        for id,lst in self.examples.items():
+            for ex in lst:
+                yield ex
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Iterates through each flagged examples (clumped by agent.)
+    def each_flagged(self):
+        for id,lst in self.examples.items():
+            for ex in lst:
+                if ex.is_flagged():
+                    yield ex
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Iterates through each unflagged examples (clumped by agent.)
+    def each_unflagged(self):
+        for id,lst in self.examples.items():
+            for ex in lst:
+                if not ex.is_flagged():
+                    yield ex
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Unflags all examples.
+    def unflag_all(self):
+        for key in self.examples:
+            for i in range(len(self.examples[key])):
+                self.examples[key][i].unflag()
+
+    # Precond:
     #   None.
     #
     # Postcond:
@@ -118,13 +150,11 @@ class ExampleSet(Dataset):
     # Postcond:
     #   Returns the ith example
     def __getitem__(self,i):
-        if self.tensors is None:
-            self.to_tensors()
-        for id in self.tensors:
-            if i >= len(self.tensors[id]):
-                i -= len(self.tensors[id])
+        for id in self.examples:
+            if i >= len(self.examples[id]):
+                i -= len(self.examples[id])
             else:
-                return self.tensors[id][i]
+                return self.prepare_example(self.examples[id][i])
         return None
 
     # Precond:
@@ -133,34 +163,37 @@ class ExampleSet(Dataset):
     # Postcond:
     #   Returns an iterator which returns test and validation set.
     def crossvalidation(self,n):
-        train = None
-        validation = None
         self.shuffle()
         for i in range(n):
-            temp_train = []
-            temp_valid = []
+            train = ExampleSet()
+            valid = ExampleSet()
             count = 0
             # Before the validation slice
             for id in self.examples:
                 # if len(self.examples[id]) <= 0:
                 #     continue
                 count = int(len(self.examples[id])/n)
-                temp_train.extend(self.examples[id][0:count*i])
+                train.add_example_list(self.examples[id][0:count*i])
+                # train.extend(self.examples[id][0:count*i])
             # The validation slice
             for id in self.examples:
                 count = int(len(self.examples[id])/n)
-                temp_valid.extend(self.examples[id][count*i:count+(count*i)])
+                valid.add_example_list(self.examples[id][count*i:count+(count*i)])
+                # valid.extend(self.examples[id][count*i:count+(count*i)])
             # After the validation slice
             for id in self.examples:
                 count = int(len(self.examples[id])/n)
-                temp_train.extend(self.examples[id][count+(count*i):])
-            train = ExampleSet()
-            validation = ExampleSet()
-            train.add_example_list(temp_train)
-            validation.add_example_list(temp_valid)
-            yield (train,validation)
-            del temp_train
-            del temp_valid
+                train.add_example_list(self.examples[id][count+(count*i):])
+                # train.extend(self.examples[id][count+(count*i):])
+            # train = ExampleSet()
+            # validation = ExampleSet()
+            # train.add_example_list(temp_train)
+            # validation.add_example_list(temp_valid)
+            yield (train,valid)
+            # del temp_train
+            # del temp_valid
+            del train
+            del valid
 
     def __str__(self):
         ex = self.example_list()

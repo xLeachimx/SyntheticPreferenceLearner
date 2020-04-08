@@ -74,6 +74,16 @@ class WeightedAverage:
             result.weights[i] = result.weights[i]/total
         return result
 
+    # Precond:
+    #   domain is a valid Domain object.
+    #   info is a valid dictionary (data unused, but important for typing).
+    #
+    # Postcond:
+    #   Returns a pill string describing the specified RPF
+    @staticmethod
+    def pill_label(domain, info):
+        return 'WA;'+ str(domain.length()) +';'+ str(domain.attr_length_largest())
+
 
     # Precond:
     #   lines is a list of lines which represent a WeightedAverage object.

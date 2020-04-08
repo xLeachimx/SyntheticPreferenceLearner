@@ -46,6 +46,18 @@ class Domain:
         return self.value[attribute]
 
     # Precond:
+    #
+    # Postcond:
+    #   Returns the number of values associated with the given largest attribute.
+    #   Returns 0 if a bad attribute is given.
+    def attr_length_largest(self):
+        result = 0
+        for item in self.value:
+            if item > result:
+                result = item
+        return result
+
+    # Precond:
     #   None.
     #
     # Postcond:
@@ -127,10 +139,11 @@ class Domain:
     #   Returns the next alternativein numerical order (least significant
     #   attribute first).
     def next_alternative(self, alt):
-        for i in range(self.attributes):
-            alt.set(i,alt.value(i)+1)
-            if alt.value(i) >= self.value[i]:
+        alt.set(0,alt.value(0)+1)
+        for i in range(self.attributes-1):
+            if alt.value(i) > self.value[i]:
                 alt.set(i,1)
+                alt.set(i+1,alt.set(i+1,alt.value(i+1)+1))
             else:
                 return alt
         return alt

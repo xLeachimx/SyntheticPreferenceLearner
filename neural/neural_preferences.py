@@ -18,7 +18,7 @@ class NeuralPreference(nn.Module):
         self.layers = [nn.Linear(size[i],size[i+1]) for i in range(len(size)-1)]
         self.layers = nn.ModuleList(self.layers)
         self.internal = nn.ReLU()
-        self.squash = nn.Softmax(dim=0)
+        self.squash = nn.LogSoftmax(dim=0)
 
     def forward(self, x):
         for i in range(len(self.layers)):
@@ -26,6 +26,14 @@ class NeuralPreference(nn.Module):
                 x = self.internal(x)
             x = self.layers[i](x)
         # x = self.squash(x)
+        return x
+
+    def forward_squash(self, x):
+        for i in range(len(self.layers)):
+            if i != 0:
+                x = self.internal(x)
+            x = self.layers[i](x)
+        x = self.squash(x)
         return x
 
 
@@ -57,22 +65,35 @@ def prepare_example(example):
 def train_neural_preferences(ex_set, layers, epochs, domain, device=None):
     result = NeuralPreference(layers, domain)
     if device is not None:
-        result.to(device)
+        result = result.to(device)
     # criterion = nn.L1Loss()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.ASGD(result.parameters(), lr=0.1)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+    optimizer = optim.SGD(result.parameters(), lr=0.01)
+    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+    scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=100)
     for epoch in range(epochs):
         globalLoss = 0.0
-        for examples in DataLoader(dataset=ex_set, batch_size=10):
-            # examples = list(examples.map(lambda x: prepare_example(x),examples))
-            inps, labels = examples
+        for examples in DataLoader(dataset=ex_set, batch_size=10, pin_memory=True):
+            inps = labels = None
+            if device is not None:
+                inps, labels = examples[0].to(device), examples[1].to(device)
+            else:
+                inps, labels = examples
             optimizer.zero_grad()
             outputs = result(inps)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
             globalLoss += loss.item()
+            del inps
+            del loss
+            del labels
+            del outputs
+            del examples
         scheduler.step(globalLoss)
         # print(epoch,"->",globalLoss)
+    del ex_set
+    del optimizer
+    # del scheduler
+    del criterion
     return result

@@ -24,6 +24,7 @@ class Example:
         self.relation = relation
         self.domain = domain
         self.agent = agent
+        self.flagged = False
 
 
     # Precond:
@@ -57,6 +58,32 @@ class Example:
     #   Returns the domain of the example.
     def get_domain(self):
         return self.domain
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns True if the example has been flagged.
+    def is_flagged(self):
+        return self.flagged
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Flags the example.
+    def flag(self):
+        self.flagged = True
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Unflags the example.
+    def unflag(self):
+        self.flagged = False
+
+
 
     # Precond:
     #   other is a valid Example object.

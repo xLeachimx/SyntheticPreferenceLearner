@@ -21,7 +21,7 @@ def learn_SA(learner, ex_set):
     current_eval = evaluate_util(learner, ex_set)
     temp = 100
     cool = 0.001
-    while temp > 10**(-7):
+    while temp > 10**(-6):
         neighbor = learner.random_neighbor()
         eval = evaluate_util(neighbor, ex_set)
         if eval > current_eval:
@@ -29,7 +29,7 @@ def learn_SA(learner, ex_set):
             learner = neighbor
         else:
             delta = eval - current_eval
-            prob = exp(-delta/temp)
+            prob = exp(delta/temp)
             if random() <= prob:
                 learner = neighbor
                 current_eval = eval

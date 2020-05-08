@@ -94,7 +94,7 @@ class PrefLiteral:
     def each_literal(domain):
         for neg in [True,False]:
             for attr in range(domain.length()):
-                for val in range(1,domain.attr_length(attr)+1):
+                for val in range(domain.attr_length(attr)):
                     yield PrefLiteral(attr,val,neg)
 
     # Precond:
@@ -116,8 +116,8 @@ class PrefLiteral:
     #   returns a string for use in a neighborhood graph.
     def node_str(self):
         if(self.negated):
-            return '-' + str(self.attr) + ':' + str(self.value)
-        return str(self.attr) + ':' + str(self.value)
+            return '-' + str(self.attr) + ':' + str(self.val)
+        return str(self.attr) + ':' + str(self.val)
 
     # Precond:
     #   other is a valid PrefLiteral object.
@@ -261,7 +261,7 @@ class PrefFormula:
             if literal == literals-1:
                 yield current
             else:
-                for form in PrefFormula._possible(current, domain, literals, literal+1):
+                for form in PrefFormula._possible(current, domain, literals, literal+1)
                     yield form
 
     # Precond:

@@ -136,7 +136,7 @@ class RankingPrefFormula:
     def each(domain, info):
         temp = RankingPrefFormula(domain)
         temp.ranks = [None for i in range(info['ranks'])]
-        for rpf in RankingPrefFormula._possible(temp, domain, info, 0):
+        for rpf in RankingPrefFormula.possible(temp, domain, info, 0):
             yield rpf
 
     @staticmethod

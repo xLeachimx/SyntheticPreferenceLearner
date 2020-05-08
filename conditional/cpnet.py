@@ -156,7 +156,8 @@ class CPnet:
     #   Returns a pill string describing the specified LPM
     @staticmethod
     def pill_label(domain, info):
-        return 'CP-Net;'+ str(domain.length()) +';'+ str(domain.attr_length_largest())
+        des = ['CP-Net',str(info['indegree']),str(domain.length()),str(domain.attr_length_largest())]
+        return ';'.join(des)
 
     # Precond:
     #   None.

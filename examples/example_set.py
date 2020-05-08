@@ -19,7 +19,7 @@ class ExampleSet(Dataset):
     #   Builds a new empty ExampleSet object
     def __init__(self):
         self.examples = {}
-        self.examples['default'] = []
+        # self.examples[0] = []
 
     # Precond:
     #   example is a valid Example object.
@@ -31,11 +31,29 @@ class ExampleSet(Dataset):
     def add_example(self, example):
         agent = example.get_agent()
         if agent is None:
-            self.examples['default'].append(example)
+            if 0 not in self.examples:
+                self.examples[0] = []
+            self.examples[0].append(example)
         else:
             if agent not in self.examples:
                 self.examples[agent] = []
             self.examples[agent].append(example)
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the agents who have examples in the example set.
+    def get_agents(self):
+        return self.examples.keys()
+
+    # Precond:
+    #   agent is the agent's dict key string.
+    #
+    # Postcond:
+    #   Returns the number of examples from the agent.
+    def agent_count(self, agent):
+        return len(self.examples[agent])
 
     # Precond:
     #   example is a valid Example object.
@@ -48,7 +66,7 @@ class ExampleSet(Dataset):
         for example in examples:
             agent = example.get_agent()
             if agent is None:
-                self.examples['default'].append(example)
+                self.examples[-1].append(example)
             else:
                 if agent not in self.examples:
                     self.examples[agent] = []
@@ -155,6 +173,19 @@ class ExampleSet(Dataset):
                 i -= len(self.examples[id])
             else:
                 return self.prepare_example(self.examples[id][i])
+        return None
+
+    # Precond:
+    #   i is the index of the example ot retrieve.
+    #
+    # Postcond:
+    #   Returns the ith example
+    def get(self,i):
+        for id in self.examples:
+            if i >= len(self.examples[id]):
+                i -= len(self.examples[id])
+            else:
+                return self.examples[id][i]
         return None
 
     # Precond:

@@ -104,9 +104,12 @@ class Domain:
     def each(self, alt=None):
         if alt is None:
             alt = Alternative([1 for i in range(self.attributes)])
-        while not self.is_highest(alt):
-            yield alt
-            alt = self.next_alternative(alt)
+        else:
+            alt = Alternative([alt.value(i) for i in range(self.attributes)])
+        if not self.is_highest(alt):
+            while not self.is_highest(alt):
+                yield alt
+                alt = self.next_alternative(alt)
         yield alt
 
     # Precond:
@@ -117,8 +120,9 @@ class Domain:
     #   numerical order (least significant attribute first).
     def each_pair(self):
         for alt1 in self.each():
-            for alt2 in self.each(self.next_alternative(alt1)):
-                yield (alt1,alt2)
+            if not self.is_highest(alt1):
+                for alt2 in self.each(self.next_alternative(alt1)):
+                    yield (alt1,alt2)
 
 
     # Precond:
@@ -139,14 +143,15 @@ class Domain:
     #   Returns the next alternativein numerical order (least significant
     #   attribute first).
     def next_alternative(self, alt):
-        alt.set(0,alt.value(0)+1)
+        n_alt = Alternative([alt.value(i) for i in range(self.attributes)])
+        n_alt.set(0,n_alt.value(0)+1)
         for i in range(self.attributes-1):
-            if alt.value(i) > self.value[i]:
-                alt.set(i,1)
-                alt.set(i+1,alt.set(i+1,alt.value(i+1)+1))
+            if n_alt.value(i) > self.value[i]:
+                n_alt.set(i,1)
+                n_alt.set(i+1,n_alt.value(i+1)+1)
             else:
-                return alt
-        return alt
+                return n_alt
+        return n_alt
 
     # Precond:
     #   line is a valid string.

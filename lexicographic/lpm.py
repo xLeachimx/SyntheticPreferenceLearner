@@ -48,23 +48,71 @@ class LPM:
     #   Returns a pill string describing the specified LPM
     @staticmethod
     def pill_label(domain, info):
-        return 'LPM;'+ domain.length() +';'+ domain.attr_length_largest()
+        return 'LPM;'+ str(domain.length()) +';'+ str(domain.attr_length_largest())
+
+    # Precond:
+    #   domain is a valid Domain object.
+    #   info is a valid dictionary (data unused, but important for typing).
+    #
+    # Postcond:
+    #   Creates a randomly built partial LPM.
+    @staticmethod
+    def random_partial(domain, info):
+        result = LPM(domain)
+        result.importance = [i for i in range(domain.length())]
+        random.shuffle(result.importance)
+        partial_point = random.randint(1,domain.length())
+        result.importance = result.importance[:partial_point]
+        result.orders = [[] for i in range(domain.length())]
+        for i in range(domain.length()):
+            result.orders[i] = [(j+1) for j in range(domain.attr_length(i))]
+            random.shuffle(result.orders[i])
 
     # Precond:
     #   None.
     #
     # Postcond:
-    #   Creates a randomly built partial LPM.
-    def random_partial(self):
-        self.importance = [i for i in range(self.domain.length())]
-        random.shuffle(self.importance)
-        partial_point = random.randint(1,self.domain.length())
-        self.importance = self.importance[:partial_point]
-        self.orders = [[] for i in range(self.domain.length())]
-        for i in range(self.domain.length()):
-            self.orders[i] = [(j+1) for j in range(self.domain.attr_length(i))]
-            random.shuffle(self.orders[i])
+    #   Returns a random LPM object which is a neighbor of this LPM object.
+    def random_neighbor(self):
+        result = LPM(self.domain)
+        result.orders.extend(self.orders)
+        result.importance.extend(self.importance)
+        if random.random() <= 0.5:
+            swap_index = random.randint(0,len(result.importance)-2)
+            sw = result.importance[swap_index]
+            result.importance[swap_index] = result.importance[swap_index+1]
+            result.importance[swap_index+1] = sw
+        else:
+            order_swap = random.randint(0,len(result.orders)-1)
+            swap_index = random.randint(0,len(result.orders[order_swap])-2)
+            sw = result.orders[order_swap][swap_index]
+            result.orders[order_swap][swap_index] = result.orders[order_swap][swap_index+1]
+            result.orders[order_swap][swap_index+1] = sw
+        return result
 
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Iterates through all neighbors of this LPM object.
+    def neighbors(self):
+        for i in range(len(self.importance)-1):
+            temp = LPM(self.domain)
+            temp.orders.extend(self.orders)
+            temp.importance.extend(self.importance)
+            sw = temp.importance[i]
+            temp.importance[i] = temp.importance[i+1]
+            temp.importance[i+1] = sw
+            yield temp
+        for i in range(len(self.orders)):
+            for j in range(len(self.orders[i])-1):
+                temp = LPM(self.domain)
+                temp.orders.extend(self.orders)
+                temp.importance.extend(self.importance)
+                sw = temp.orders[i][j]
+                temp.orders[i][j] = temp.orders[i][j+1]
+                temp.orders[i][j+1] = sw
+                yield temp
 
     # Precond:
     #  alt1 is a valid Alternative object.

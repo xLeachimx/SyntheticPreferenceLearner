@@ -237,13 +237,18 @@ class CPT:
     @staticmethod
     def random(domain, conditions, attr):
         result = CPT(attr)
-        for value in result.count(domain, conditions):
-            cond = Condition()
-            for i in range(len(conditions)):
-                cond.add_positive(conditions[i],value[i])
+        if len(conditions) == 0:
             order = [i+1 for i in range(domain.attr_length(attr))]
             shuffle(order)
-            result.add_entry(ConditionalPreference(cond,order))
+            result.add_entry(ConditionalPreference(Condition(),order))
+        else:
+            for value in result.count(domain, conditions):
+                cond = Condition()
+                for i in range(len(conditions)):
+                    cond.add_positive(conditions[i],value[i])
+                order = [i+1 for i in range(domain.attr_length(attr))]
+                shuffle(order)
+                result.add_entry(ConditionalPreference(cond,order))
         return result
 
     # Precond:

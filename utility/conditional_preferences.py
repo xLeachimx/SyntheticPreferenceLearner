@@ -7,6 +7,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('..'))
 
 from examples.relation import Relation
+from random import shuffle
 
 # Class for handling a single alternative condition.
 class Condition:
@@ -199,14 +200,14 @@ class CPT:
         pref = self.order(alt1)
         v1,v2 = alt1.value(self.attr),alt2.value(self.attr)
         if v1 not in pref or v2 not in pref:
-            return Relation.incomparable()
+            return Relation.equal()
         r1,r2 = pref.index(v1),pref.index(v2)
         if r1 < r2:
             return Relation.strict_preference()
         elif r1 > r2:
             return Relation.strict_dispreference()
         else:
-            return Realtion.incomparable()
+            return Realtion.equal()
 
     # Precond:
     #   pref is a valid ConditionalPreference object.
@@ -224,6 +225,45 @@ class CPT:
     def __str__(self):
         entries = '|'.join(list(map(lambda x: str(x),self.preferences)))
         return str(self.attr)+'|'+entries
+
+    # Precond:
+    #   domain ia a valid domain object.
+    #   conditions is a list of integers indicating which attributes condition
+    #       the attribute.
+    #   attr is the attribute over which preferences are specfied.
+    #
+    # Postcond:
+    #   Returns a randomly generated CPT.
+    @staticmethod
+    def random(domain, conditions, attr):
+        result = CPT(attr)
+        for value in result.count(domain, conditions):
+            cond = Condition()
+            for i in range(len(conditions)):
+                cond.add_positive(conditions[i],value[i])
+            order = [i+1 for i in range(domain.attr_length(attr))]
+            shuffle(order)
+            result.add_entry(ConditionalPreference(cond,order))
+        return result
+
+    # Precond:
+    #   domain ia a valid domain object.
+    #   attr is a list of attributes.
+    #
+    # Postcond:
+    #   Enumerates through all combinations of values over the attirbutes.
+    def _count(self, domain, attr):
+        values = [1 for i in range(len(attr))]
+        while values[-1] <= domain.attr_length(attr[-1]):
+            yield values
+            values[0] += 1
+            for i in range(0,len(attr)-1):
+                if values[i] <= domain.attr_length(attr[i]):
+                    break
+                else:
+                    values[i] = 1
+                    values[i+1] += 1
+
 
     # Precond:
     #   line is a string representing a CPT.

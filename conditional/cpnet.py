@@ -139,6 +139,10 @@ class CPnet:
     # Precond:
     #   info is a dictionary containing all needed generating information.
     #   domain is a valid Domain object.
+    #
+    # Postcond:
+    #   Returns a the preference graph of a random CP-net that has been closed
+    #   under transitivity.
     @staticmethod
     def random(domain, info):
         net = generate_CPYNet(info, domain)

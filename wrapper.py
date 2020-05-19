@@ -76,10 +76,12 @@ def main_neighbor(args):
     label += ';' + str(config[1][0].size)
     with open(args.output[0],'a') as fout:
         fout.write('(' + label +  ')')
+    start = time.time()
     pool = mp.Pool(4)
     pool.map(sys_call_wait,[call for i in range(runs)])
     with open(args.output[0],'a') as fout:
         fout.write("\n")
+    print("Full Time:",time.time()-start)
     return 0
 
 def pill_label(types, holder, domain):
@@ -98,6 +100,6 @@ def build_parser():
 
 
 if __name__=="__main__":
-    main(build_parser().parse_args())
+    # main(build_parser().parse_args())
     # main_multi(build_parser().parse_args())
-    # main_neighbor(build_parser().parse_args())
+    main_neighbor(build_parser().parse_args())

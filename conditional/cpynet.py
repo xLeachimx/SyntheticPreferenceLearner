@@ -8,6 +8,7 @@ import xml.etree.ElementTree as xmlTree
 import random
 from os import listdir, path, system
 from os.path import isfile, join, splitext
+from uuid import uuid4
 
 # Precond:
 #   info is a dictionary containing all need fields for the call to gencpnet
@@ -18,20 +19,22 @@ from os.path import isfile, join, splitext
 # Postcond:
 #   Return a CPYnet object as built by the gencpnet program.
 def generate_CPYNet(info, domain):
+    uid = uuid4()
+    dir = 'temp_cp' + str(uid)
     call_str = "gencpnet "
     call_str += '-c ' + str(info['indegree'])
     call_str += ' -d ' + str(domain.attr_length_largest())
     call_str += ' -n ' + str(domain.length())
-    call_str += ' temp_cp/'
-    system('mkdir temp_cp')
+    call_str += ' ' + dir
+    system('mkdir ' + dir)
     system(call_str)
     result = CPYnet()
-    files = [join('temp_cp', f) for f in listdir('temp_cp') if isfile(join('temp_cp', f))]
+    files = [join(dir, f) for f in listdir(dir) if isfile(join(dir, f))]
     for f in files:
         filename, file_extension = splitext(f)
         if file_extension == '.xml':
             result.load(f)
-    system('rm -rf temp_cp')
+    system('rm -rf ' + dir)
     return result
 
 # A class whose objects represent a CPT entry.

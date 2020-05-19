@@ -15,6 +15,7 @@ from weighted.weighted_average import WeightedAverage
 from conditional.cpnet import CPnet
 from neural.neural_preferences import train_neural_preferences, prepare_example
 from annealing.simulated_annealing import learn_SA
+import annealing.simulated_annealing as SA
 
 
 def main(args):
@@ -259,7 +260,8 @@ def main_build_neighbor(args):
     for rpf in RankingPrefFormula.each(config[0],info):
         # eval = evaluate_rep_full_multi(agents, rpf, config[0])
         # eval = evaluate_rep_full_maximin(agents, rpf, config[0])
-        eval = evaluate_rep(ex_set, rpf)
+        # eval = evaluate_rep(ex_set, rpf)
+        eval = SA.evaluate_maximin(rpf, ex_set)
         n_graph.add_node(rpf.node_str(), eval)
         for neighbor in rpf.neighbors():
             n_graph.add_arc(rpf.node_str(), neighbor.node_str())
@@ -284,6 +286,47 @@ def main_build_neighbor(args):
     print("Minimum:",n_graph.global_minima())
     print("Average:",n_graph.average())
     print("Number of Nodes:",len(n_graph))
+
+def main_build_neighbor_monte_carlo(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet]
+
+    info = {}
+    l_class = None
+    if len(args.learn_conf) == 1:
+        l_config = parse_configuration(args.learn_conf[0])
+        info = l_config[1][0].info
+        for type in agent_types:
+            if l_config[1][0].type.lower() == type.string_id().lower():
+                l_class = type
+    else:
+        info['clauses'] = 1
+        info['literals'] = 1
+        info['ranks'] = 5
+        l_class = RankingPrefFormula
+
+    results = []
+    runs = 250
+    start = time()
+    agents = []
+    for holder in config[1]:
+        agents.append(make_agent(holder,agent_types,config[0]))
+    ex_set = build_example_set_multi(agents, config[0])
+    for i in range(runs):
+        learner = l_class.random(config[0],info)
+        # learner = SA.hillclimb(learner, ex_set, SA.evaluate_util)
+        learner = SA.hillclimb(learner, ex_set, SA.evaluate_maximin)
+        # results.append(SA.evaluate_util(learner, ex_set))
+        results.append(SA.evaluate_maximin(learner, ex_set))
+    average_maxima = 0.0
+    for i in results:
+        average_maxima += i
+    average_maxima = average_maxima/(len(results))
+    stats = [runs,min(results),average_maxima,max(results)]
+    stats = list(map(lambda x: str(x),stats))
+    with open(args.output[0], 'a') as fout:
+        fout.write(',(' + ';'.join(stats) + ')')
+    print("Time:",time()-start)
 
 # Precond:
 #   ex_set is a valid ExampleSet object
@@ -531,7 +574,8 @@ def build_parser():
 if __name__=="__main__":
     # main_learn_nn(build_parser().parse_args())
     # main_learn_lpm(build_parser().parse_args())
-    main_learn_SA(build_parser().parse_args())
+    # main_learn_SA(build_parser().parse_args())
     # main_learn_joint_nn(build_parser().parse_args())
     # main_learn_joint_SA(build_parser().parse_args())
-    # main_build_neighbor(build_parser().parse_args())
+    main_build_neighbor(build_parser().parse_args())
+    # main_build_neighbor_monte_carlo(build_parser().parse_args())

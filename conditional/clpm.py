@@ -78,3 +78,23 @@ class CLPM:
             previous.extend(group)
         result.preferences = prefs
         return result
+
+    # Precond:
+    #   domain is a valid Domain object.
+    #   info is a valid dictionary (data unused, but important for typing).
+    #
+    # Postcond:
+    #   Returns a pill string describing the specified LPM
+    @staticmethod
+    def pill_label(domain, info):
+        des = ['CLPM',str(info['limit']),str(domain.length()),str(domain.attr_length_largest())]
+        return ';'.join(des)
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the string identifier of this class.
+    @staticmethod
+    def string_id():
+        return "CLPM"

@@ -97,14 +97,14 @@ class LPTree:
     def random(domain, info):
         result = LPTree(domain)
         attrs = [i for i in range(domain.length())]
-        cp = (info['cp'].lower() == 'true')
+        cp = (info['cp'] == 1)
         c_limit = 0
         if cp:
-            c_limit = int(info['c_limit'])
-        ci = (info['ci'].lower() == 'true')
+            c_limit = info['c_limit']
+        ci = (info['ci'] == 1)
         s_limit = 0
         if ci:
-            s_limit = int(info['s_limit'])
+            s_limit = info['s_limit']
         LPTree._random([], attrs, c_limit, s_limit, result.root)
 
     # Precond:
@@ -162,4 +162,4 @@ class LPTree:
     #   Returns the string identifier of this class.
     @staticmethod
     def string_id():
-        return "CLPM"
+        return "LPTree"

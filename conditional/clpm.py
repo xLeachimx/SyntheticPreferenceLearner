@@ -41,7 +41,7 @@ class CLPM:
                     if rel == Relation.equal():
                         rel = attr_rel
                     elif not (rel == attr_rel):
-                        return Relation.incomparable()
+                        return Relation.incomparable()LP-tree
             if not (rel == Relation.equal()):
                 return rel
         return Relation.equal()
@@ -72,7 +72,7 @@ class CLPM:
         previous = []
         for group in order:
             for mem in group:
-                num_conds = randint(0,info['limit'])
+                num_conds = randint(0,info['c_limit'])
                 conds = sample(previous, num_conds)
                 prefs[mem] = CPT.random(conds,mem)
             previous.extend(group)
@@ -87,7 +87,7 @@ class CLPM:
     #   Returns a pill string describing the specified LPM
     @staticmethod
     def pill_label(domain, info):
-        des = ['CLPM',str(info['limit']),str(domain.length()),str(domain.attr_length_largest())]
+        des = ['CLPM',str(info['c_limit']),str(domain.length()),str(domain.attr_length_largest())]
         return ';'.join(des)
 
     # Precond:

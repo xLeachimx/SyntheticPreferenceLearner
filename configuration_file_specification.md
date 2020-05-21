@@ -37,14 +37,16 @@
 
 - Each representation may specify additional configuration as needed.
 
-| Type                       | Additional Fields           | Type Name    |
-|----------------------------|-----------------------------|--------------|
-| Weighted Average           | N/A                         | WA           |
-| Penalty Logic              | formulas, clauses, literals | PenaltyLogic |
-| LPM                        | N/A                         | LPM          |
-| Ranking Preference Formula | clauses, literals, ranks    | RPF          |
-| CP-net                     | indegree                    | CP-net       |
-
+| Type                       | Additional Fields                        | Type Name    |
+|----------------------------|------------------------------------------|--------------|
+| Weighted Average           | N/A                                      | WA           |
+| Penalty Logic              | formulas, clauses, literals              | PenaltyLogic |
+| LPM                        | N/A                                      | LPM          |
+| Ranking Preference Formula | clauses, literals, ranks                 | RPF          |
+| CP-net                     | indegree                                 | CP-net       |
+| LP-tree                    | c_limit, s_limit, cp, ci                 | LPTree       |
+| CLPM                       | c_limit                                  | CLPM         |
+| Answer Set Optimization    | rules, formulas, clauses, literals, ranks| ASO          |
 ## Comments
 
 - Comments are supported and specified by a '#' at the beginning of the line.

@@ -20,7 +20,7 @@ class PreferenceGraph:
         self.domain = domain
         self.nodes = {}
         for outcome in domain.each():
-            self.nodes[str(outcome)] = [[],False]
+            self.nodes[str(outcome)] = [set([]),False,False]
 
     # Precond:
     #   start is a valid Alternative object.
@@ -29,7 +29,7 @@ class PreferenceGraph:
     # Postcond:
     #   Adds the arc to the graph.
     def arc(self, start, to):
-        self.nodes[str(start)][0].append(str(to))
+        self.nodes[str(start)][0].add(str(to))
         self.closed = False
 
     # Precond:
@@ -40,25 +40,27 @@ class PreferenceGraph:
     def transitive(self):
         if self.closed:
             return
-        self.unmark()
         for node in list(self.nodes.keys()):
-            self.transitive_node(node)
+            self.unmark()
+            reachable = set()
+            self.reachable_node(node,reachable)
+            self.nodes[node][0] |= reachable
         self.closed = True
 
     # Precond:
     #   node is the key for a node.
+    #   reachable is the Set of nodes which are already reachable by the node.
     #
     # Postcond:
-    #   Computes the transitive closure for the node in question.
-    def transitive_node(self, node):
+    #   Computes the nodes reachable from the node in question.
+    def reachable_node(self, node, reached):
         if self.nodes[node][1]:
             return
         self.nodes[node][1] = True
         for arc in self.nodes[node][0]:
-            self.transitive_node(arc)
-            for arc2 in self.nodes[arc][0]:
-                if not self.has_arc(node,arc2):
-                    self.nodes[node][0].append(arc2)
+            reached.add(arc)
+            self.reachable_node(arc, reached)
+
 
     # Precond:
     #   None.
@@ -67,7 +69,7 @@ class PreferenceGraph:
     #   Returns the proportion of nodes which are part of a cylce.
     def cyclicity(self):
         count = 0
-        for node in self.nodes:
+        for node in self.nodes.keys():
             self.unmark()
             if self.find_cycle(node,node):
                 count += 1
@@ -102,9 +104,8 @@ class PreferenceGraph:
     def transitive_path(self, start, to):
         s = str(start)
         t = str(to)
-        for arc in self.nodes[s][0]:
-            if arc == t:
-                return True
+        if to in self.nodes[s]:
+            return True
         return False
 
     # Precond:
@@ -114,6 +115,7 @@ class PreferenceGraph:
     # Postcond:
     #   Reutrns true if there is a path from the start outcome
     #   to the to outcome.
+    # TODO: FIX
     def path(self, start, to):
         self.unmark()
         if str(start) == str(to):
@@ -153,6 +155,15 @@ class PreferenceGraph:
     #   None.
     #
     # Postcond:
+    #   Releases all nodes in the graph.
+    def release(self):
+        for key in self.nodes.keys():
+            self.nodes[key][2] = False
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
     #   Iterates through all incomparable pairs.
     def incomparable(self):
         result = []
@@ -180,10 +191,7 @@ class PreferenceGraph:
     # Postcond:
     #   Returns true if there is an arc from start to to.
     def has_arc(self, start, to):
-        for node in self.nodes[start][0]:
-            if node == to:
-                return True
-        return False
+        return to in self.nodes[start][0]
 
     # Precond:
     #   alt1 is a a valid Alternative object.

@@ -61,6 +61,38 @@ class PreferenceGraph:
                     self.nodes[node][0].append(arc2)
 
     # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the proportion of nodes which are part of a cylce.
+    def cyclicity(self):
+        count = 0
+        for node in self.nodes:
+            self.unmark()
+            if self.find_cycle(node,node):
+                count += 1
+        return count/(float(len(self.nodes)))
+
+    # Precond:
+    #   start is the node whose cyclicity we are determining.
+    #   current is the current node under consideration.
+    #
+    # Postcond:
+    #   Returns true if start is part of a cycle.
+    def find_cycle(self, start, current):
+        if self.nodes[current][1]:
+            return False
+        self.nodes[current][1] = True
+        for arc in self.nodes[current][0]:
+            if arc == start:
+                return True
+            else:
+                if self.find_cycle(start,arc):
+                    return True
+        return False
+
+
+    # Precond:
     #   start is a valid Alternative object.
     #   to is a valid Alternative object.
     #

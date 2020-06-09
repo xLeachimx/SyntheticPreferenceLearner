@@ -33,7 +33,7 @@ class CLPM:
     #   Returns the reslation between two alternatives as determined by the
     #   model.
     def compare(self, alt1, alt2):
-        for rank in attr_order:
+        for rank in self.attr_order:
             rel = Relation.equal()
             for attr in rank:
                 if(alt1.value(attr) != alt2.value(attr)):
@@ -41,7 +41,7 @@ class CLPM:
                     if rel == Relation.equal():
                         rel = attr_rel
                     elif not (rel == attr_rel):
-                        return Relation.incomparable()LP-tree
+                        return Relation.incomparable()
             if not (rel == Relation.equal()):
                 return rel
         return Relation.equal()
@@ -72,9 +72,10 @@ class CLPM:
         previous = []
         for group in order:
             for mem in group:
-                num_conds = randint(0,info['c_limit'])
+                limit = min(info['c_limit'],len(previous))
+                num_conds = randint(0,limit)
                 conds = sample(previous, num_conds)
-                prefs[mem] = CPT.random(conds,mem)
+                prefs[mem] = CPT.random(domain,conds,mem)
             previous.extend(group)
         result.preferences = prefs
         return result

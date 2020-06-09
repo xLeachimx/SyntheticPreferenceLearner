@@ -242,7 +242,7 @@ class CPT:
             shuffle(order)
             result.add_entry(ConditionalPreference(Condition(),order))
         else:
-            for value in result.count(domain, conditions):
+            for value in result._count(domain, conditions):
                 cond = Condition()
                 for i in range(len(conditions)):
                     cond.add_positive(conditions[i],value[i])

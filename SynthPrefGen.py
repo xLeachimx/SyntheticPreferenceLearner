@@ -104,6 +104,8 @@ def main_learn_nn(args):
     else:
         learn_device = torch.device('cpu')
     layers = [256,256,256]
+    layer_cut = max(0,args.layers[0])
+    layers = layers[:layer_cut]
     for holder in config[1]:
         single_run(args, holder, agent_types, config, layers, learn_device)
 
@@ -140,7 +142,7 @@ def main_learn_joint_nn(args):
     else:
         learn_device = torch.device('cpu')
     layers = [256,256,256]
-    layer_cut = max(0,args.layers)
+    layer_cut = max(0,args.layers[0])
     layers = layers[:layer_cut]
     for holder in config[1]:
         agents.append(make_agent(holder,agent_types,config[0]))
@@ -325,6 +327,47 @@ def main_build_neighbor_monte_carlo(args):
         average_maxima += i
     average_maxima = average_maxima/(len(results))
     stats = [runs,min(results),average_maxima,max(results)]
+    stats = list(map(lambda x: str(x),stats))
+    with open(args.output[0], 'a') as fout:
+        fout.write(',(' + ';'.join(stats) + ')')
+    print("Time:",time()-start)
+
+def main_hillclimb_rr(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+
+    info = {}
+    l_class = None
+    if len(args.learn_conf) == 1:
+        l_config = parse_configuration(args.learn_conf[0])
+        info = l_config[1][0].info
+        for type in agent_types:
+            if l_config[1][0].type.lower() == type.string_id().lower():
+                l_class = type
+    else:
+        info['clauses'] = 1
+        info['literals'] = 1
+        info['ranks'] = 5
+        l_class = RankingPrefFormula
+
+    runs = 400
+    max_eval = 0
+    start = time()
+    stats = [100]
+    agents = []
+    for holder in config[1]:
+        agents.append(make_agent(holder,agent_types,config[0]))
+    ex_set = build_example_set_multi(agents, config[0])
+    for i in range(runs):
+        learner = l_class.random(config[0],info)
+        learner = SA.hillclimb(learner, ex_set, SA.evaluate_util)
+        # learner = SA.hillclimb(learner, ex_set, SA.evaluate_maximin)
+        eval = SA.evaluate_util(learner, ex_set)
+        # eval = SA.evaluate_maximin(learner, ex_set)
+        if eval > max_eval:
+            max_eval = eval
+        if (i+1)%(stats[0]) == 0:
+            stats.append(max_eval)
     stats = list(map(lambda x: str(x),stats))
     with open(args.output[0], 'a') as fout:
         fout.write(',(' + ';'.join(stats) + ')')
@@ -565,7 +608,7 @@ def build_example_set_multi(agents, domain):
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Automatically generate examples from randomly built synthetic agents.")
-    parser.add_argument('-l', dest='layers', metavar='n', type=int, nargs=1, default=3, help='The number of neural net layers')
+    parser.add_argument('-l', dest='layers', metavar='n', type=list, nargs=1, default=[3], help='The number of neural net layers')
     parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.exs')
     parser.add_argument('-o', dest='output', metavar='filename', type=str, nargs=1, help='Name of the output file.', default='a.exs')
     parser.add_argument('config', metavar='filename', type=str, nargs=1, help="The config file to use.")
@@ -575,9 +618,10 @@ def build_parser():
 
 if __name__=="__main__":
     # main_learn_nn(build_parser().parse_args())
-    # main_learn_lpm(build_parser().parse_args())
+    main_learn_lpm(build_parser().parse_args())
     # main_learn_SA(build_parser().parse_args())
     # main_learn_joint_nn(build_parser().parse_args())
     # main_learn_joint_SA(build_parser().parse_args())
     # main_build_neighbor(build_parser().parse_args())
-    main_build_neighbor_monte_carlo(build_parser().parse_args())
+    # main_build_neighbor_monte_carlo(build_parser().parse_args())
+    # main_hillclimb_rr(build_parser().parse_args())

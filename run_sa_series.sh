@@ -11,7 +11,8 @@
 #   zip $NEWFILE.zip $NEWFILE.csv $CONFIG timing.dat
 # done
 
-config_ary='baseline_multi five_113RPF five_227RPF five_CPNet_0 five_CPNet_7'
+# config_ary='baseline_multi five_113RPF five_227RPF five_CPNet_0 five_CPNet_7'
+config_ary='learn_new'
 
 for config in $config_ary
 do
@@ -21,4 +22,4 @@ do
   python3 wrapper.py -i 227RPF_learn.config -o $OUTFILE.csv $config.config
   zip $OUTFILE.zip $OUTFILE.csv $config.config timing.dat
 done
-# python3 wrapper.py -o five_113RPF.config_results_113RPF.csv
+# python3 wrapper.py -o five_227RPF.config_results_113RPF.csv

@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from examples.relation import Relation
 from utility.conditional_preferences import CPT
-from random import shuffle, sample, random
+from random import shuffle, sample, random, randint
 
 # Class for handling an LPTNode.
 class LPTNode:
@@ -50,7 +50,7 @@ class LPTNode:
             order = self.cpt.order(alt1)
             if order.index(alt1.value(self.attr)) < order.index(alt2.value(self.attr)):
                 return Relation.strict_preference()
-            else if order.index(alt1.value(self.attr)) < order.index(alt2.value(self.attr)):
+            elif order.index(alt1.value(self.attr)) > order.index(alt2.value(self.attr)):
                 return Relation.strict_dispreference()
             else:
                 return Relation.equal()
@@ -105,7 +105,8 @@ class LPTree:
         s_limit = 0
         if ci:
             s_limit = info['s_limit']
-        LPTree._random([], attrs, c_limit, s_limit, result.root)
+        result.root = LPTree._random(domain, [], attrs, c_limit, s_limit)
+        return result
 
     # Precond:
     #   domain is a valid Domain object.
@@ -120,29 +121,32 @@ class LPTree:
     # Postcond:
     #   Builds out a randomly generated LPTree from the given node.
     @staticmethod
-    def _random(domain, before, current, c_limit, s_limit, node):
+    def _random(domain, before, current, c_limit, s_limit):
         node = LPTNode()
         # Base Case:
-        if lem(current):
+        if len(current) == 0:
             node.leaf = True
-            return
+            return node
         # Determine the attribute to be placed in the node.
         shuffle(current)
         node.attr = current[0]
         # Determine if this node is conditioned.
-        cond_count = min(len(before),c_limit)
+        limit = min(c_limit,len(before))
+        cond_count = randint(0,limit)
+        if random() < 0.5:
+            cond_count = 0
         node.cpt = CPT.random(domain, sample(before,cond_count), node.attr)
         # Determine and handle a potential split
         if s_limit > 0 and (random() < 0.5 or s_limit <= len(current)):
             node.split = True
             node.children = [None for i in range(domain.attr_length(node.attr))]
             for i in range(domain.attr_length(node.attr)):
-                LPTree._random(domain, before+current[0], current[1:], c_limit, s_limit-1, node.children[i])
+                node.children[i] = LPTree._random(domain, before+[current[0]], current[1:], c_limit, s_limit-1)
         else:
             node.split = False
             node.children = [None]
-            LPTree._random(domain, before+current[0], current[1:], c_limit, s_limit, node.children[0])
-        return
+            node.children[0] = LPTree._random(domain, before+[current[0]], current[1:], c_limit, s_limit)
+        return node
 
     # Precond:
     #   domain is a valid Domain object.

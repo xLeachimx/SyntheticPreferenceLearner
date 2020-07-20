@@ -52,7 +52,7 @@ def main_multi(args):
     label += ';' + str(config[1][0].size)
     with open(args.output[0],'a') as fout:
         fout.write('(' + label +  ')')
-    pool = mp.Pool(2)
+    pool = mp.Pool(4)
     pool.map(sys_call_wait,[call for i in range(runs)])
 
     with open(args.output[0],'a') as fout:
@@ -104,6 +104,6 @@ def build_parser():
 
 
 if __name__=="__main__":
-    main(build_parser().parse_args())
-    # main_multi(build_parser().parse_args())
+    # main(build_parser().parse_args())
+    main_multi(build_parser().parse_args())
     # main_neighbor(build_parser().parse_args())

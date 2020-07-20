@@ -227,3 +227,59 @@ class LPM:
         result.importance = importance
         result.orders = orders
         return result
+
+    # Precond:
+    #   ex_set is a valid ExampleSet object.
+    #   domain is a valid Domain object.
+    #
+    # Postcond:
+    #   Returns an LPM learned from the ExampleSet in a Maximin manner
+    @staticmethod
+    def learn_greedy_maximin(ex_set, domain):
+        ex_set.unflag_all()
+        for ex in ex_set.each_unflagged():
+            if ex.get_relation() == Relation.equal():
+                ex.flag()
+        importance = []
+        orders = [[j+1 for j in range(domain.attr_length(i))] for i in range(domain.length())]
+        possible_next = [i for i in range(domain.length())]
+        agents = ex_set.get_agents()
+        while len(possible_next) != 0:
+            best_attr = possible_next[0]
+            best_score = -1
+            best_order = [i+1 for i in range(domain.attr_length(best_attr))]
+            for attr in possible_next:
+                values = [i+1 for i in range(domain.attr_length(attr))]
+                for order in permutations(values,len(values)):
+                    agent_counts = {}
+                    for agent in agents:
+                        agent_counts[agent] = 0
+                    for ex in ex_set.each_unflagged():
+                        if ex.get_alts()[0].value(attr) == ex.get_alts()[1].value(attr):
+                            continue
+                        rank1 = order.index(ex.get_alts()[0].value(attr))
+                        rank2 = order.index(ex.get_alts()[1].value(attr))
+                        if ex.get_relation() == Relation.strict_preference():
+                            if rank1 > rank2:
+                                agent_counts[ex.get_agent()] += 1
+                        if ex.get_relation() == Relation.strict_dispreference():
+                            if rank1 < rank2:
+                                agent_counts[ex.get_agent()] += 1
+                    incorrect = 0
+                    for _, count in agent_counts.items():
+                        if count > incorrect:
+                            incorrect = count
+                    if best_score == -1 or incorrect < best_score:
+                        best_score = incorrect
+                        best_attr = attr
+                        best_order = order[:]
+            importance.append(best_attr)
+            orders[best_attr] = best_order
+            possible_next.remove(best_attr)
+            for ex in ex_set.each_unflagged():
+                if ex.get_alts()[0].value(best_attr) != ex.get_alts()[1].value(best_attr):
+                    ex.flag()
+        result = LPM(domain)
+        result.importance = importance
+        result.orders = orders
+        return result

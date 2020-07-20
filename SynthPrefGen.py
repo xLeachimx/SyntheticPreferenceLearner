@@ -178,6 +178,46 @@ def main_learn_lpm(args):
             with open(args.output[0],'a') as fout:
                 fout.write(',(' + temp + ')')
 
+# main for learning lpms
+def main_learn_joint_lpm(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agents = []
+    for holder in config[1]:
+        agents.append(make_agent(holder,agent_types,config[0]))
+    ex_set = build_example_set_multi(agents, config[0])
+    for train, valid in ex_set.crossvalidation(5):
+        start = time()
+        learner = LPM.learn_greedy(train,config[0])
+        print(time()-start)
+        training = evaluate_multi(train,learner)
+        validation = evaluate_multi(valid,learner)
+        training = ';'.join(list(map(lambda x: str(x),training)))
+        validation = ';'.join(list(map(lambda x: str(x),validation)))
+        temp = ';'.join([training,validation])
+        with open(args.output[0],'a') as fout:
+            fout.write(',(' + temp + ')')
+
+# main for learning lpms
+def main_learn_joint_lpm_mm(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agents = []
+    for holder in config[1]:
+        agents.append(make_agent(holder,agent_types,config[0]))
+    ex_set = build_example_set_multi(agents, config[0])
+    for train, valid in ex_set.crossvalidation(5):
+        start = time()
+        learner = LPM.learn_greedy_maximin(train,config[0])
+        print(time()-start)
+        training = evaluate_multi(train,learner)
+        validation = evaluate_multi(valid,learner)
+        training = ';'.join(list(map(lambda x: str(x),training)))
+        validation = ';'.join(list(map(lambda x: str(x),validation)))
+        temp = ';'.join([training,validation])
+        with open(args.output[0],'a') as fout:
+            fout.write(',(' + temp + ')')
+
 def main_learn_lpm_full(args):
     config = parse_configuration(args.config[0])
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
@@ -794,6 +834,8 @@ if __name__=="__main__":
     # main_learn_nn(build_parser().parse_args())
     main_learn_nn_full(build_parser().parse_args())
     # main_learn_lpm(build_parser().parse_args())
+    # main_learn_joint_lpm(build_parser().parse_args())
+    # main_learn_joint_lpm_mm(build_parser().parse_args())
     # main_learn_lpm_full(build_parser().parse_args())
     # main_learn_SA(build_parser().parse_args())
     # main_learn_SA_full(build_parser().parse_args())

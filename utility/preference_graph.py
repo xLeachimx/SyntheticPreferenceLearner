@@ -48,6 +48,18 @@ class PreferenceGraph:
         self.closed = True
 
     # Precond:
+    #   nodes is a list of valid Alternative objects.
+    #
+    # Postcond:
+    #   Unions the outgoing arcs between n1 and n2.
+    def share_arcs(self, nodes):
+        arcs = set([])
+        for node in nodes:
+            arcs |= self.nodes[str(node)][0]
+        for node in nodes:
+            self.nodes[str(node)][0] = arcs
+
+    # Precond:
     #   node is the key for a node.
     #   reachable is the Set of nodes which are already reachable by the node.
     #
@@ -104,7 +116,7 @@ class PreferenceGraph:
     def transitive_path(self, start, to):
         s = str(start)
         t = str(to)
-        if to in self.nodes[s]:
+        if t in self.nodes[s][0]:
             return True
         return False
 

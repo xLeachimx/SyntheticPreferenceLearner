@@ -53,3 +53,16 @@ Below we provide an ordered list of each data pill for each type of data run.
    2. Evaluation score of the maxima with the worst evaluation.
    3. Average evaluation score of a maxima.
    4. Evaluation score of the global maximum (or best maxima in the case of a Monte Carlo).
+
+4. When comparing a learned NN model to the full preference model:
+
+  1. Training Accuracy (proportion of correctly decided examples.)
+  2. Validation Accuracy (proportion of correctly decided examples.)
+  3. Full Accuracy proportion of correctly decided examples compared against the original agent.)
+  4. Cyclicity (proportion of alternatives which dominate themselves.)
+
+4. When comparing a SA learned RPF to the full preference model:
+
+  1. Training Accuracy (proportion of correctly decided examples.)
+  2. Validation Accuracy (proportion of correctly decided examples.)
+  3. Full Accuracy proportion of correctly decided examples compared against the original agent.)

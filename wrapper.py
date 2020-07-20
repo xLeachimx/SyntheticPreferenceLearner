@@ -27,9 +27,10 @@ def main(args):
         call += "-o " + args.output[0] + " "
         call += "temp_agent.config >> timing.dat"
         runs = 25
+        print(call)
         with open(args.output[0],'a') as fout:
             fout.write('(' + pill_label(agent_types,holder,config[0]) + ';' + str(holder.size) +  ')')
-        pool = mp.Pool(4)
+        pool = mp.Pool(2)
         pool.map(sys_call_wait,[call for i in range(runs)])
         with open(args.output[0],'a') as fout:
             fout.write("\n")
@@ -95,7 +96,7 @@ def pill_label(types, holder, domain):
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Automatically generate examples from randomly built synthetic agents.")
-    parser.add_argument('-l', dest='layers', metavar='n', type=list, nargs=1, default=[3], help='The number of neural net layers')
+    parser.add_argument('-l', dest='layers', metavar='n', type=int, nargs=1, default=[3], help='The number of neural net layers')
     parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.exs')
     parser.add_argument('-o', dest='output', metavar='filename', type=str, nargs=1, help='Name of the output file.', default='a.exs')
     parser.add_argument('config', metavar='filename', type=str, nargs=1, help="The config file to use.")

@@ -12,7 +12,7 @@
 # done
 
 # config_ary='baseline_multi five_113RPF five_227RPF five_CPNet_0 five_CPNet_7'
-config_ary='learn_new'
+config_ary='learn'
 
 for config in $config_ary
 do

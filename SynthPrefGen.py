@@ -8,6 +8,7 @@ from examples.example_set import ExampleSet
 from examples.relation import Relation
 from utility.configuration_parser import AgentHolder, parse_configuration
 from utility.neighbor_graph import NeighborGraph
+from utility.preference_graph import PreferenceGraph
 from lexicographic.lpm import LPM
 from lexicographic.lp_tree import LPTree
 from ranking.ranking_formula import RankingPrefFormula
@@ -74,7 +75,7 @@ def single_run(args, holder, agent_types, config, layers, learn_device):
         # train.to_tensors(learn_device)
         # valid.to_tensors(learn_device)
         start = time()
-        learner = train_neural_preferences(train,layers,3000,config[0],learn_device)
+        learner = train_neural_preferences(train,layers,1000,config[0],learn_device)
         # learner.to(eval_device)
         learner.eval()
         training = evaluate_cuda(train,learner,learn_device)
@@ -91,6 +92,37 @@ def single_run(args, holder, agent_types, config, layers, learn_device):
         del valid
     del ex_set
     del proportion
+
+def single_run_full(args, holder, agent_types, config, layers, learn_device):
+    training = 0.0
+    validation = 0.0
+    agent = make_agent(holder,agent_types,config[0])
+    ex_set = build_example_set(agent[0],agent[1],config[0])
+    for train, valid in ex_set.crossvalidation(5):
+        # train.to_tensors(learn_device)
+        # valid.to_tensors(learn_device)
+        start = time()
+        learner = train_neural_preferences(train,layers,1000,config[0],learn_device)
+        # learner.to(eval_device)
+        learner.eval()
+        training = evaluate_cuda(train,learner,learn_device)
+        validation = evaluate_cuda(valid,learner,learn_device)
+        # full_validation = full_cuda_eval(config[0],learner,agent[0],learn_device)
+        full_validation = -1
+        p_graph = build_NN_pref_graph(config[0],learner,learn_device)
+        print(time()-start)
+        # pills.append('(' + str(training) + ';' + str(validation) + ')')
+        temp = ';'.join([str(training),str(validation),str(full_validation),str(p_graph.cyclicity())])
+        with open(args.output[0],'a') as fout:
+            fout.write(',(' + temp + ')')
+        torch.cuda.empty_cache()
+        del p_graph
+        del temp
+        del learner
+        del train
+        del valid
+    del agent
+    del ex_set
 
 def main_learn_nn(args):
     config = parse_configuration(args.config[0])
@@ -109,6 +141,23 @@ def main_learn_nn(args):
     for holder in config[1]:
         single_run(args, holder, agent_types, config, layers, learn_device)
 
+def main_learn_nn_full(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agents = []
+    learn_device = None
+    # with open(args.output[0],'w') as fout:
+    #     fout.write('')
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
+    layers = [256,256,256]
+    layer_cut = max(0,args.layers[0])
+    layers = layers[:layer_cut]
+    for holder in config[1]:
+        single_run_full(args, holder, agent_types, config, layers, learn_device)
+
 # main for learning lpms
 def main_learn_lpm(args):
     config = parse_configuration(args.config[0])
@@ -126,6 +175,23 @@ def main_learn_lpm(args):
             training = evaluate_rep(train,learner)
             validation = evaluate_rep(valid,learner)
             temp = ';'.join([str(training),str(validation),proportion])
+            with open(args.output[0],'a') as fout:
+                fout.write(',(' + temp + ')')
+
+def main_learn_lpm_full(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    for holder in config[1]:
+        agent = make_agent(holder,agent_types,config[0])
+        ex_set = build_example_set(agent[0],agent[1],config[0])
+        for train, valid in ex_set.crossvalidation(5):
+            start = time()
+            learner = LPM.learn_greedy(train,config[0])
+            print(time()-start)
+            training = evaluate_rep(train,learner)
+            validation = evaluate_rep(valid,learner)
+            full_eval = evaluate_rep_full(agent[0], learner, config[0])
+            temp = ';'.join([str(training),str(validation),str(full_eval)])
             with open(args.output[0],'a') as fout:
                 fout.write(',(' + temp + ')')
 
@@ -244,6 +310,40 @@ def main_learn_SA(args):
             training = evaluate_rep(train,learner)
             validation = evaluate_rep(valid,learner)
             temp = ';'.join([str(training),str(validation),proportion])
+            with open(args.output[0],'a') as fout:
+                fout.write(',(' + temp + ')')
+
+def main_learn_SA_full(args):
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    config = parse_configuration(args.config[0])
+    info = {}
+    l_class = None
+    if len(args.learn_conf) == 1:
+        l_config = parse_configuration(args.learn_conf[0])
+        info = l_config[1][0].info
+        for type in agent_types:
+            if l_config[1][0].type.lower() == type.string_id().lower():
+                l_class = type
+    else:
+        info['clauses'] = 1
+        info['literals'] = 1
+        info['ranks'] = 5
+        l_class = RankingPrefFormula
+
+    for holder in config[1]:
+        agent = make_agent(holder,agent_types,config[0])
+        ex_set = build_example_set(agent[0],agent[1],config[0])
+        for train, valid in ex_set.crossvalidation(5):
+            start = time()
+            learner = l_class.random(config[0],info)
+            # learner = RankingPrefFormula.random(config[0],info)
+            # learner = LPM.random(config[0], info)
+            learner = learn_SA(learner, train)
+            print(time()-start)
+            training = evaluate_rep(train,learner)
+            validation = evaluate_rep(valid,learner)
+            full_eval = evaluate_rep_full(agent[0], learner, config[0])
+            temp = ';'.join([str(training),str(validation),str(full_eval)])
             with open(args.output[0],'a') as fout:
                 fout.write(',(' + temp + ')')
 
@@ -411,11 +511,13 @@ def evaluate_rep(ex_set, learner):
 #   Returns the proportion of examples in the ex_set.
 def evaluate_rep_full(agent, learner, domain):
     count = 0
+    total = 0
     for pair in domain.each_pair():
         rel = agent.build_example(pair[0],pair[1]).get_relation()
-        if learner.compare(alts[0],alts[1]) == rel:
+        if learner.compare(pair[0],pair[1]) == rel:
             count += 1
-    return count/float(len(ex_set))
+        total += 1
+    return count/float(total)
 
 # Precond:
 #   agents is a list of the original agents learned from.
@@ -559,7 +661,79 @@ def evaluate_cuda(ex_set, learner, device=None):
         del label
     return count/float(len(ex_set))
 
+# Precond:
+#   pair is a pair of valid Alternative objects.
+#
+# Postcond:
+#   Returns a tensor for input into a NN.
+def prepare_pair(pair):
+    inp = pair[0].values + pair[1].values
+    inp = list(map(lambda x: float(x), inp))
+    inp = torch.tensor(inp)
+    del pair
+    return inp
 
+# Precond:
+#   domain is a valid Domain object.
+#   learner is a valid NeuralPreference object for the given domain.
+#   device is a valid PyTorch device or None.
+#
+# Postcond:
+#   Returns a preference graph generated by the preferences of the given
+#   NN.
+def build_NN_pref_graph(domain, learner, device=None):
+    p_graph = PreferenceGraph(domain)
+    equals = []
+    for pair in domain.each_pair():
+        inp = prepare_pair(pair)
+        if device is not None:
+            inp = inp.to(device)
+        label = learner.forward_squash(inp)
+        label = Relation.parse_label(label)
+        if label == Relation.strict_preference():
+            p_graph.arc(pair[0],pair[1])
+        elif label == Relation.strict_dispreference():
+            p_graph.arc(pair[1],pair[0])
+        elif label == Relation.equal():
+            found = False
+            for item in equals:
+                for entry in item:
+                    if entry == pair[0] or entry == pair[1]:
+                        found = True
+                        item.append(pair[0])
+                        item.append(pair[1])
+                        break
+                if found:
+                    break
+            if not found:
+                equals.append([pair[0],pair[1]])
+    for eq_set in equals:
+        p_graph.share_arcs(eq_set)
+    return p_graph
+
+# Precond:
+#   domain is a valid Domain object.
+#   learner is a valid NeuralPreference object for the given domain.
+#   agent is a valid Agent object for the given domain.
+#   device is a valid PyTorch device or None.
+#
+# Postcond:
+#   Returns the proportion of correctly classified example over the entire
+#   pairwise comparison space of the domain.
+def full_cuda_eval(domain, learner, agent, device=None):
+    count = 0
+    total = 0
+    for pair in domain.each_pair():
+        total += 1
+        expect = agent.build_example(pair[0],pair[1]).relation
+        inp = prepare_pair(pair)
+        if device is not None:
+            inp = inp.to(device)
+        label = learner.forward_squash(inp)
+        label = Relation.parse_label(label)
+        if label == expect:
+            count += 1
+    return count/(float(total))
 
 # Precond:
 #   agent is a valid AgentHolder object.
@@ -608,7 +782,7 @@ def build_example_set_multi(agents, domain):
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Automatically generate examples from randomly built synthetic agents.")
-    parser.add_argument('-l', dest='layers', metavar='n', type=list, nargs=1, default=[3], help='The number of neural net layers')
+    parser.add_argument('-l', dest='layers', metavar='n', type=int, nargs=1, default=[3], help='The number of neural net layers')
     parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.exs')
     parser.add_argument('-o', dest='output', metavar='filename', type=str, nargs=1, help='Name of the output file.', default='a.exs')
     parser.add_argument('config', metavar='filename', type=str, nargs=1, help="The config file to use.")
@@ -618,8 +792,11 @@ def build_parser():
 
 if __name__=="__main__":
     # main_learn_nn(build_parser().parse_args())
-    main_learn_lpm(build_parser().parse_args())
+    main_learn_nn_full(build_parser().parse_args())
+    # main_learn_lpm(build_parser().parse_args())
+    # main_learn_lpm_full(build_parser().parse_args())
     # main_learn_SA(build_parser().parse_args())
+    # main_learn_SA_full(build_parser().parse_args())
     # main_learn_joint_nn(build_parser().parse_args())
     # main_learn_joint_SA(build_parser().parse_args())
     # main_build_neighbor(build_parser().parse_args())

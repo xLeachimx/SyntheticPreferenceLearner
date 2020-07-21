@@ -17,7 +17,7 @@ from weighted.weighted_average import WeightedAverage
 from conditional.cpnet import CPnet
 from conditional.clpm import CLPM
 from neural.neural_preferences import train_neural_preferences, prepare_example
-from annealing.simulated_annealing import learn_SA
+from annealing.simulated_annealing import learn_SA, learn_SA_mm
 import annealing.simulated_annealing as SA
 
 
@@ -302,6 +302,46 @@ def main_learn_joint_SA(args):
         learner = l_class.random(config[0],info)
         # learner = LPM.random(config[0], info)
         learner = learn_SA(learner, train)
+        print(time()-start)
+        training = evaluate_multi(train,learner)
+        validation = evaluate_multi(valid,learner)
+        training = ';'.join(list(map(lambda x: str(x),training)))
+        validation = ';'.join(list(map(lambda x: str(x),validation)))
+        temp = ';'.join([training,validation])
+        with open(args.output[0],'a') as fout:
+            fout.write(',(' + temp + ')')
+        del temp
+        del learner
+        del train
+        del valid
+    del ex_set
+
+def main_learn_joint_SA_mm(args):
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    config = parse_configuration(args.config[0])
+    info = {}
+    l_class = None
+    if len(args.learn_conf) == 1:
+        l_config = parse_configuration(args.learn_conf[0])
+        info = l_config[1][0].info
+        for type in agent_types:
+            if l_config[1][0].type.lower() == type.string_id().lower():
+                l_class = type
+    else:
+        info['clauses'] = 1
+        info['literals'] = 1
+        info['ranks'] = 5
+        l_class = RankingPrefFormula
+
+    agents = []
+    for holder in config[1]:
+        agents.append(make_agent(holder,agent_types,config[0]))
+    ex_set = build_example_set_multi(agents, config[0])
+    for train, valid in ex_set.crossvalidation(5):
+        start = time()
+        learner = l_class.random(config[0],info)
+        # learner = LPM.random(config[0], info)
+        learner = learn_SA_mm(learner, train)
         print(time()-start)
         training = evaluate_multi(train,learner)
         validation = evaluate_multi(valid,learner)
@@ -826,13 +866,13 @@ def build_parser():
     parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.exs')
     parser.add_argument('-o', dest='output', metavar='filename', type=str, nargs=1, help='Name of the output file.', default='a.exs')
     parser.add_argument('config', metavar='filename', type=str, nargs=1, help="The config file to use.")
-    return parser
+    return parsermain_learn_joint_SA_MM
 
 
 
 if __name__=="__main__":
     # main_learn_nn(build_parser().parse_args())
-    main_learn_nn_full(build_parser().parse_args())
+    # main_learn_nn_full(build_parser().parse_args()) <-- RETURN HERE
     # main_learn_lpm(build_parser().parse_args())
     # main_learn_joint_lpm(build_parser().parse_args())
     # main_learn_joint_lpm_mm(build_parser().parse_args())
@@ -841,6 +881,7 @@ if __name__=="__main__":
     # main_learn_SA_full(build_parser().parse_args())
     # main_learn_joint_nn(build_parser().parse_args())
     # main_learn_joint_SA(build_parser().parse_args())
+    main_learn_joint_SA_mm(build_parser().parse_args())
     # main_build_neighbor(build_parser().parse_args())
     # main_build_neighbor_monte_carlo(build_parser().parse_args())
     # main_hillclimb_rr(build_parser().parse_args())

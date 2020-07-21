@@ -77,6 +77,35 @@ def learn_SA(learner, ex_set):
 # Precond:
 #   learner is a preference represntation object implementing the following methods:
 #       1) neighbors(self) -> Iterates through all neighbors of the learner.
+#       2) random_neighbor(self) -> Returns a random neighbor of the learner.
+#       3) compare(self, alt1, alt2) -> Returns the relation between alt1 and alt2.
+#   ex_set is a valid ExampleSet object.
+#
+# Postcond:
+#   Returns a modified learner which has been processed through an implementation
+#   of simulated annealing and then a round of hill climbing.
+def learn_SA_mm(learner, ex_set):
+    current_eval = evaluate_maximin(learner, ex_set)
+    temp = 100
+    cool = 0.001
+    while temp > 10**(-6):
+        neighbor = learner.random_neighbor()
+        eval = evaluate_maximin(neighbor, ex_set)
+        if eval > current_eval:
+            current_eval = eval
+            learner = neighbor
+        else:
+            delta = eval - current_eval
+            prob = exp(delta/temp)
+            if random() <= prob:
+                learner = neighbor
+                current_eval = eval
+        temp = temp/(1.0+cool)
+    return hillclimb(learner,ex_set, evaluate_maximin)
+
+# Precond:
+#   learner is a preference represntation object implementing the following methods:
+#       1) neighbors(self) -> Iterates through all neighbors of the learner.
 #       2) compare(self, alt1, alt2) -> Returns the relation between alt1 and alt2.
 #   ex_set is a valid ExampleSet object.
 #   eval_func is a function which takes a learner and an example set and

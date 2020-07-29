@@ -16,6 +16,7 @@ An extensible python program which generates sets of synthetic preference exampl
   `-p problem subproblem` specifies the problem and subproblem to run.
 
   Problem Numbers:
+
   |Problem Number| Description |
   |--------------|-------------|
   | 1            | Learning Preferences with Neural Networks.|
@@ -24,6 +25,7 @@ An extensible python program which generates sets of synthetic preference exampl
   | 4            | Various related baselines.|
 
   Subproblem numbers for problems 1-3
+
   |Subproblem Number| Description |
   |--------------|-------------|
   | 1               | Learning Preferences from a single agent. |
@@ -34,8 +36,9 @@ An extensible python program which generates sets of synthetic preference exampl
   Note: Subproblem 3 for problem 1 is not implemented.
 
   Subproblem for problem 4:
-  |--------------|-------------|
+
   | Subproblem | Description |
+  |--------------|-------------|
   | 1          | Builds and analyzes full fitness graph.|
   | 2          | Builds and analyzes partial fitness graph using hill climbing.|
   | 3          | Analyzes basic hill climbing and random restart approach. |

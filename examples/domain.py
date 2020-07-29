@@ -6,7 +6,8 @@
 # Notes:
 #
 
-from alternative import Alternative
+from .alternative import Alternative
+from random import randint
 
 class Domain:
     # Precond:
@@ -45,6 +46,55 @@ class Domain:
         return self.value[attribute]
 
     # Precond:
+    #
+    # Postcond:
+    #   Returns the number of values associated with the given largest attribute.
+    #   Returns 0 if a bad attribute is given.
+    def attr_length_largest(self):
+        result = 0
+        for item in self.value:
+            if item > result:
+                result = item
+        return result
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns a random pair of alternatives, with a canonical ordering.
+    def random_pair(self):
+        alt1 = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+        alt2 = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+        while alt1 == alt2:
+            alt2 = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+        for i in range(self.attributes):
+            if alt1.value(i) < alt2.value(i):
+                return (alt1,alt2)
+            elif alt1.value(i) > alt2.value(i):
+                return (alt2,alt1)
+        return (alt1, alt2)
+
+    # Postcond:
+    #   size is an integer indicating the number of pairs to return.
+    #
+    # Precond:
+    #   Returns a random set of pairs, with no two pairs repeating.
+    def random_pair_set(self, size):
+        result = [self.random_pair() for i in range(size)]
+        found = False
+        while len(result) != size:
+            temp = self.random_pair()
+            found = True
+            for pair in result:
+                if pair[0] == temp[0] and pair[1] == temp[1]:
+                    found = False
+                    break
+            if found:
+                result.append(temp)
+        return result
+
+
+    # Precond:
     #   alt is a valid Alternative object for this domain, or None.
     #
     # Postcond:
@@ -54,9 +104,12 @@ class Domain:
     def each(self, alt=None):
         if alt is None:
             alt = Alternative([1 for i in range(self.attributes)])
-        while not self.is_highest(alt):
-            yield alt
-            alt = self.next_alternative(alt)
+        else:
+            alt = Alternative([alt.value(i) for i in range(self.attributes)])
+        if not self.is_highest(alt):
+            while not self.is_highest(alt):
+                yield alt
+                alt = self.next_alternative(alt)
         yield alt
 
     # Precond:
@@ -67,8 +120,9 @@ class Domain:
     #   numerical order (least significant attribute first).
     def each_pair(self):
         for alt1 in self.each():
-            for alt2 in self.each(self.next_alternative(alt1)):
-                yield (alt1,alt2)
+            if not self.is_highest(alt1):
+                for alt2 in self.each(self.next_alternative(alt1)):
+                    yield (alt1,alt2)
 
 
     # Precond:
@@ -89,13 +143,15 @@ class Domain:
     #   Returns the next alternativein numerical order (least significant
     #   attribute first).
     def next_alternative(self, alt):
-        for i in range(self.attributes):
-            alt.set(i,alt.value(i)+1)
-            if alt.value(i) >= self.value[i]:
-                alt.set(i,1)
+        n_alt = Alternative([alt.value(i) for i in range(self.attributes)])
+        n_alt.set(0,n_alt.value(0)+1)
+        for i in range(self.attributes-1):
+            if n_alt.value(i) > self.value[i]:
+                n_alt.set(i,1)
+                n_alt.set(i+1,n_alt.value(i+1)+1)
             else:
-                return alt
-        return alt
+                return n_alt
+        return n_alt
 
     # Precond:
     #   line is a valid string.
@@ -110,9 +166,10 @@ class Domain:
         if line[0] != 'd':
             return None
         contents = line.split(' ')
-        attrs = contents[1]
+        attrs = int(contents[1])
         values = contents[2:]
-        if attrs < len(values):
+        values = list(map(lambda x: int(x),values))
+        if attrs <= len(values):
             return Domain(attrs,values)
         return None
 
@@ -123,4 +180,4 @@ class Domain:
     #   Returns the string representation of the domain.
     def __str__(self):
         str_vals = list(map(lambda x: str(x), self.value))
-        return ' '.join(['d', str(self.attributes), ' '.join(str_vals)])
+        return ' '.join(['D', str(self.attributes), ' '.join(str_vals)])

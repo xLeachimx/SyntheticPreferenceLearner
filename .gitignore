@@ -102,3 +102,19 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+# MAC-ignore things
+.DS_Store
+
+# Project specifics
+*.ex
+agency/
+*.pref
+*.csv
+*.zip
+*.config
+learn.config
+learn-pl-proport.config
+timing.dat
+test.py

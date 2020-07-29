@@ -5,7 +5,7 @@
 #   Defines an example generating agent.
 # Notes:
 
-from example import Example
+from .example import Example
 
 class Agent:
     nextID = 1
@@ -18,8 +18,8 @@ class Agent:
     # Postcond:
     #   Builds a new Agent object.
     def __init__(self,model,domain=None):
-        self.id = nextID
-        nextID += 1
+        self.id = Agent.nextID
+        Agent.nextID += 1
         self.model = model
         self.domain = domain
 
@@ -30,8 +30,8 @@ class Agent:
     # Postcond:
     #   Returns an example based on the agent's model.
     def build_example(self, alt1, alt2):
-        relation = model.compare(alt1,alt2)
-        return Example(alt1,alt2,relation,domain,self.id)
+        relation = self.model.compare(alt1,alt2)
+        return Example(alt1,alt2,relation,self.domain,self.id)
 
     # Precond:
     #   None.

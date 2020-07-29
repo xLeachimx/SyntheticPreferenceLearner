@@ -11,7 +11,7 @@
 #        1: alt1 is at least as preferred as alt2
 #        2: alt1 is strictly preferred to alt2
 #        3: alt1 is incomparable with alt2
-#   3 represent the same status
+#   3 and -3 represent the same status
 
 class Relation:
     # Precond:
@@ -51,6 +51,39 @@ class Relation:
             return Relation(-2)
         else:
             return Relation(self.value)
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns a proper label for learning preference relations using a neural
+    #   network.
+    def neural_label(self):
+        if self.value == -2:
+            return [1.0,0.0,0.0,0.0,0.0,0.0]
+        elif self.value == -1:
+            return [0.0,1.0,0.0,0.0,0.0,0.0]
+        elif self.value == 0:
+            return [0.0,0.0,1.0,0.0,0.0,0.0]
+        elif self.value == 1:
+            return [0.0,0.0,0.0,1.0,0.0,0.0]
+        elif self.value == 2:
+            return [0.0,0.0,0.0,0.0,1.0,0.0]
+        else:
+            return [0.0,0.0,0.0,0.0,0.0,1.0]
+
+    # Precond:
+    #   label is a list of floating point values.
+    #
+    # Postcond:
+    #   Builds a new relation from the given label.
+    @staticmethod
+    def parse_label(label):
+        index = 0
+        for i in range(1,len(label)):
+            if label[index] < label[i]:
+                index = i
+        return Relation(index-2)
 
     # Precond:
     #   None.

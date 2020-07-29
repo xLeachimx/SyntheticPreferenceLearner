@@ -58,6 +58,13 @@ class Alternative:
             self.domain = domain
         return True
 
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the length of the alternative.
+    def length(self):
+        return len(self.values)
 
     # Precond:
     #   line is a valid string.

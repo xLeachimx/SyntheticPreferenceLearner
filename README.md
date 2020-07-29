@@ -17,6 +17,7 @@ An extensible python program which generates sets of synthetic preference exampl
 
   Problem Numbers:
   |Problem Number| Description |
+  |--------------|-------------|
   | 1            | Learning Preferences with Neural Networks.|
   | 2            | Learning Preferences with Lexicographic Preference Models.|
   | 3            | Learning Preferences with Ranking Preference Formulas.|
@@ -24,6 +25,7 @@ An extensible python program which generates sets of synthetic preference exampl
 
   Subproblem numbers for problems 1-3
   |Subproblem Number| Description |
+  |--------------|-------------|
   | 1               | Learning Preferences from a single agent. |
   | 2               | Learning Joint Preferences (Utilitarian).|
   | 3               | Learning Joint Preferences (Maximin).|
@@ -32,6 +34,7 @@ An extensible python program which generates sets of synthetic preference exampl
   Note: Subproblem 3 for problem 1 is not implemented.
 
   Subproblem for problem 4:
+  |--------------|-------------|
   | Subproblem | Description |
   | 1          | Builds and analyzes full fitness graph.|
   | 2          | Builds and analyzes partial fitness graph using hill climbing.|

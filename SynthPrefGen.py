@@ -862,26 +862,56 @@ def build_example_set_multi(agents, domain):
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Automatically generate examples from randomly built synthetic agents.")
+    parser.add_argument('-p', dest='problem', metavar='n', type=int, nargs=2, default=[1,1], help='Specified which problem/subproblem to run.')
     parser.add_argument('-l', dest='layers', metavar='n', type=int, nargs=1, default=[3], help='The number of neural net layers')
     parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.exs')
     parser.add_argument('-o', dest='output', metavar='filename', type=str, nargs=1, help='Name of the output file.', default='a.exs')
     parser.add_argument('config', metavar='filename', type=str, nargs=1, help="The config file to use.")
-    return parsermain_learn_joint_SA_MM
+    return parser
 
 
 
 if __name__=="__main__":
-    # main_learn_nn(build_parser().parse_args())
-    # main_learn_nn_full(build_parser().parse_args()) <-- RETURN HERE
-    # main_learn_lpm(build_parser().parse_args())
-    # main_learn_joint_lpm(build_parser().parse_args())
-    # main_learn_joint_lpm_mm(build_parser().parse_args())
-    # main_learn_lpm_full(build_parser().parse_args())
-    # main_learn_SA(build_parser().parse_args())
-    # main_learn_SA_full(build_parser().parse_args())
-    # main_learn_joint_nn(build_parser().parse_args())
-    # main_learn_joint_SA(build_parser().parse_args())
-    main_learn_joint_SA_mm(build_parser().parse_args())
-    # main_build_neighbor(build_parser().parse_args())
-    # main_build_neighbor_monte_carlo(build_parser().parse_args())
-    # main_hillclimb_rr(build_parser().parse_args())
+    args = build_parser.parse_args()
+    if args.problem[0] == 1:
+        if args.problem[1] == 1:
+            main_learn_nn(args)
+        elif args.problem[1] == 2:
+            main_learn_joint_nn(args)
+        elif args.problem[1] == 4:
+            main_learn_nn_full(args) # <-- RETURN HERE
+        else:
+            print("Error: Unknown/Unavailable Subproblem.")
+    elif args.problem[0] == 2:
+        if args.problem[1] == 1:
+            main_learn_lpm(args)
+        elif args.problem[1] == 2:
+            main_learn_joint_lpm(args)
+        elif args.problem[1] == 3:
+            main_learn_joint_lpm_mm(args)
+        elif args.problem[1] == 4:
+            main_learn_lpm_full(args)
+        else:
+            print("Error: Unknown/Unavailable Subproblem.")
+    elif args.problem[0] == 3:
+        if args.problem[1] == 1:
+            main_learn_SA(args)
+        elif args.problem[1] == 2:
+            main_learn_joint_SA(args)
+        elif args.problem[1] == 3:
+            main_learn_joint_SA_mm(args)
+        elif args.problem[1] == 4:
+            main_learn_SA_full(args)
+        else:
+            print("Error: Unknown/Unavailable Subproblem.")
+    elif args.problem[0] == 4:
+        if args.problem[1] == 1:
+            main_build_neighbor(args)
+        elif args.problem[1] == 2:
+            main_build_neighbor_monte_carlo(args)
+        elif args.problem[1] == 3:
+            main_hillclimb_rr(args)
+        else:
+            print("Error: Unknown/Unavailable Subproblem.")
+    else:
+        print("Error: Unknown/Unavailable Problem.")

@@ -22,6 +22,8 @@ def main(args):
             fout.write(str(config[0])+"\n")
             fout.write(str(holder))
         call = "python3 SynthPrefGen.py -l " + str(args.layers[0]) + ' '
+        prob = list(map(lambda x: str(x),args.problem))
+        call += '-p ' + ' '.join(prob) + ' '
         if len(args.learn_conf) == 1:
             call += '-i ' + args.learn_conf[0] + ' '
         call += "-o " + args.output[0] + " "
@@ -42,6 +44,8 @@ def main_multi(args):
     with open(args.output[0],'w') as fout:
         fout.write('')
     call = "python3 SynthPrefGen.py -o " + args.output[0] + " "
+    prob = list(map(lambda x: str(x),args.problem))
+    call += '-p ' + ' '.join(prob) + ' '
     if len(args.learn_conf) == 1:
         call += '-i ' + args.learn_conf[0] + ' '
     call += args.config[0] + " >> timing.dat"
@@ -70,6 +74,8 @@ def main_neighbor(args):
     with open(args.output[0],'w') as fout:
         fout.write('')
     call = "python3 SynthPrefGen.py -o " + args.output[0] + " "
+    prob = list(map(lambda x: str(x),args.problem))
+    call += '-p ' + ' '.join(prob) + ' '
     if len(args.learn_conf) == 1:
         call += '-i ' + args.learn_conf[0] + ' '
     call += args.config[0] + " >> timing.dat"
@@ -96,6 +102,7 @@ def pill_label(types, holder, domain):
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Automatically generate examples from randomly built synthetic agents.")
+    parser.add_argument('-p', dest='problem', metavar='n', type=int, nargs=2, default=[1,1], help='Specified which problem/subproblem to run.')
     parser.add_argument('-l', dest='layers', metavar='n', type=int, nargs=1, default=[3], help='The number of neural net layers')
     parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.exs')
     parser.add_argument('-o', dest='output', metavar='filename', type=str, nargs=1, help='Name of the output file.', default='a.exs')

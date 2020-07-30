@@ -12,6 +12,7 @@ from utility.preference_graph import PreferenceGraph
 from lexicographic.lpm import LPM
 from lexicographic.lp_tree import LPTree
 from ranking.ranking_formula import RankingPrefFormula
+from ranking.answer_set_optimization import ASO
 from weighted.penalty_logic import PenaltyLogic
 from weighted.weighted_average import WeightedAverage
 from conditional.cpnet import CPnet
@@ -24,7 +25,7 @@ import annealing.simulated_annealing as SA
 def main(args):
     print(args)
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     agents = []
     # Build agents.
     for agent in config[1]:
@@ -126,7 +127,7 @@ def single_run_full(args, holder, agent_types, config, layers, learn_device):
 
 def main_learn_nn(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     agents = []
     learn_device = None
     # with open(args.output[0],'w') as fout:
@@ -143,7 +144,7 @@ def main_learn_nn(args):
 
 def main_learn_nn_full(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     agents = []
     learn_device = None
     # with open(args.output[0],'w') as fout:
@@ -161,7 +162,7 @@ def main_learn_nn_full(args):
 # main for learning lpms
 def main_learn_lpm(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     for holder in config[1]:
         agent = make_agent(holder,agent_types,config[0])
         ex_set = build_example_set(agent[0],agent[1],config[0])
@@ -181,7 +182,7 @@ def main_learn_lpm(args):
 # main for learning lpms
 def main_learn_joint_lpm(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     agents = []
     for holder in config[1]:
         agents.append(make_agent(holder,agent_types,config[0]))
@@ -201,7 +202,7 @@ def main_learn_joint_lpm(args):
 # main for learning lpms
 def main_learn_joint_lpm_mm(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     agents = []
     for holder in config[1]:
         agents.append(make_agent(holder,agent_types,config[0]))
@@ -220,7 +221,7 @@ def main_learn_joint_lpm_mm(args):
 
 def main_learn_lpm_full(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     for holder in config[1]:
         agent = make_agent(holder,agent_types,config[0])
         ex_set = build_example_set(agent[0],agent[1],config[0])
@@ -237,7 +238,7 @@ def main_learn_lpm_full(args):
 
 def main_learn_joint_nn(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     info = {}
     agents = []
     learn_device = None
@@ -277,7 +278,7 @@ def main_learn_joint_nn(args):
     del ex_set
 
 def main_learn_joint_SA(args):
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     config = parse_configuration(args.config[0])
     info = {}
     l_class = None
@@ -317,7 +318,7 @@ def main_learn_joint_SA(args):
     del ex_set
 
 def main_learn_joint_SA_mm(args):
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     config = parse_configuration(args.config[0])
     info = {}
     l_class = None
@@ -358,7 +359,7 @@ def main_learn_joint_SA_mm(args):
 
 # main for learning using simulated annealing
 def main_learn_SA(args):
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     config = parse_configuration(args.config[0])
     info = {}
     l_class = None
@@ -394,7 +395,7 @@ def main_learn_SA(args):
                 fout.write(',(' + temp + ')')
 
 def main_learn_SA_full(args):
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     config = parse_configuration(args.config[0])
     info = {}
     l_class = None
@@ -429,7 +430,7 @@ def main_learn_SA_full(args):
 
 def main_build_neighbor(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     info = {}
     info['clauses'] = 1
     info['literals'] = 1
@@ -473,7 +474,7 @@ def main_build_neighbor(args):
 
 def main_build_neighbor_monte_carlo(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
 
     info = {}
     l_class = None
@@ -514,7 +515,7 @@ def main_build_neighbor_monte_carlo(args):
 
 def main_hillclimb_rr(args):
     config = parse_configuration(args.config[0])
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
 
     info = {}
     l_class = None

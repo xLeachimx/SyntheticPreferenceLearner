@@ -9,8 +9,10 @@
 import sys, os
 sys.path.insert(0, os.path.abspath('..'))
 
-from untility.pref_logic import PrefFormula
+from utility.pref_logic import PrefFormula
+from examples.relation import Relation
 from random import randint
+
 class ASO:
     # Precond:
     #   domain is a valid Domain object.
@@ -89,7 +91,7 @@ class ASO:
         if len(sVec1) != len(sVec2):
             return Relation.incomparable()
         result = Relation.equal()
-        for i in range(sVec1):
+        for i in range(len(sVec1)):
             if result == Relation.equal():
                 if sVec1[i] < sVec2[i]:
                     result = Relation.strict_preference()
@@ -157,7 +159,7 @@ class ASO:
     def neighbors(self):
         for i in range(len(self.ranks)):
             for j in range(len(self.ranks[i])):
-                for k in range(len(self.ranks[k])):
+                for k in range(len(self.ranks[j])):
                     result = self._copy()
                     for neighbor in self.ranks[i][j][k].neighbors():
                         result.ranks[i][j][k] = neighbor
@@ -170,7 +172,7 @@ class ASO:
     #   Returns a completely separate copy of the ASO.
     def _copy(self):
         result = ASO(self.domain)
-        result.ranks = [[[] for j in range(len(self.ranks[i])] for i in range(len(self.ranks))]
+        result.ranks = [[[] for j in range(len(self.ranks[i]))] for i in range(len(self.ranks))]
         for i in range(len(self.ranks)):
             for j in range(len(self.ranks[i])):
                 for k in range(len(self.ranks[i][j])):
@@ -202,7 +204,7 @@ class ASO:
                 result.ranks[rank][rule] = []
                 for formula in range(info['formulas']):
                     # Add a random formula to the rule.
-                    temp = PrefFormula.random(info['clauses'],info['literals'])
+                    temp = PrefFormula.random(info['clauses'],info['literals'],domain)
                     result.ranks[rank][rule].append(temp)
         return result
 
@@ -224,4 +226,4 @@ class ASO:
     #   Returns the string identifier of this class.
     @staticmethod
     def string_id():
-        return "LPTree"
+        return "ASO"

@@ -873,7 +873,7 @@ def build_parser():
 
 
 if __name__=="__main__":
-    args = build_parser.parse_args()
+    args = build_parser().parse_args()
     if args.problem[0] == 1:
         if args.problem[1] == 1:
             main_learn_nn(args)

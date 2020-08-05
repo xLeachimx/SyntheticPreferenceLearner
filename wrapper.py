@@ -32,7 +32,7 @@ def main(args):
         print(call)
         with open(args.output[0],'a') as fout:
             fout.write('(' + pill_label(agent_types,holder,config[0]) + ';' + str(holder.size) +  ')')
-        pool = mp.Pool(2)
+        pool = mp.Pool(4)
         pool.map(sys_call_wait,[call for i in range(runs)])
         with open(args.output[0],'a') as fout:
             fout.write("\n")

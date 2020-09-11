@@ -86,7 +86,7 @@ class PortfolioExampleSet(Dataset):
     # Postcond:
     #   Returns the ith example
     def __getitem__(self,i):
-        return self.examples[i]
+        return self.prepare_example(self.examples[i])
 
     # Precond:
     #   i is the index of the example ot retrieve.

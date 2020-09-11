@@ -138,7 +138,7 @@ def train_neural_preferences_curve(ex_set, layers, epochs, domain, device=None):
             del examples
         scheduler.step(globalLoss)
         if(epoch%10 == 0 or epoch == epochs-1):
-            samples.append((epoch+1,globalLoss))
+            samples.append(globalLoss)
         # print(epoch,"->",globalLoss)
     del ex_set
     del optimizer

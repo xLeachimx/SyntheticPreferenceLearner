@@ -6,9 +6,11 @@
 # Notes:
 #   Updated on 25 Oct 2019
 #   Updated on 31 Oct 2019
+#   Updated on 11 Sept 2020
 
 from random import shuffle
 from torch.utils.data import Dataset
+from .relation import Relation
 import torch
 
 class ExampleSet(Dataset):

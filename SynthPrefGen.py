@@ -5,6 +5,8 @@ import gc
 from time import time
 from examples.agent import Agent
 from examples.example_set import ExampleSet
+from examples.portfolio_example import PortfolioExample
+from examples.portfolio_example_set import PortfolioExampleSet
 from examples.relation import Relation
 from utility.configuration_parser import AgentHolder, parse_configuration
 from utility.neighbor_graph import NeighborGraph
@@ -18,6 +20,7 @@ from weighted.weighted_average import WeightedAverage
 from conditional.cpnet import CPnet
 from conditional.clpm import CLPM
 from neural.neural_preferences import train_neural_preferences, train_neural_preferences_curve, prepare_example
+from neural.neural_portfolio import train_neural_portfolio
 from annealing.simulated_annealing import learn_SA, learn_SA_mm
 import annealing.simulated_annealing as SA
 
@@ -197,6 +200,62 @@ def main_learn_nn_full(args):
     layers = layers[:layer_cut]
     for holder in config[1]:
         single_run_full(args, holder, agent_types, config, layers, learn_device)
+
+# main for neural network portfolio learning.
+def main_nn_portfolio(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    learn_device = None
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
+    layers = [256 for i in range(max(0,args.layers[0]))]
+    copies = 50
+    types = []
+    example_set = []
+    # Generate example sets
+    for copies:
+        for holder in config[1]:
+            # build agent
+            agent = make_agent(holder,agent_types,config[0])
+            # build example_set
+            ex_set = build_example_set(agent[0],agent[1],config[0])
+            # convert to feature vector
+            features = ex_set.get_feature_set()
+            label = holder.type.lower()
+            for i in range(len(agent_types)):
+                if label == agent_types[i].string_id().lower():
+                    if label not in types:
+                        types.append(label)
+            example_set.append(PortfolioExample(features,label))
+            del agent
+            del ex_set
+            del features
+    learning_set = PortfolioExampleSet(labels)
+    learning_set.add_example_list(example_set)
+    return
+    training = 0.0
+    validation = 0.0
+    for train, valid in learning_set.crossvalidation(5):
+        start = time()
+        learner = train_neural_portfolio(train,layers,1000,learn_device)
+        learner.eval()
+        # TODO: Need to build these functions.
+        training = evaluate_portfolio(train,learner,learn_device)
+        validation = evaluate_portfolio(valid,learner,learn_device)
+        print(time()-start)
+        temp = ';'.join([str(training),str(validation)])
+        with open(args.output[0],'a') as fout:
+            fout.write(',(' + temp + ')')
+        torch.cuda.empty_cache()
+        del temp
+        del learner
+        del train
+        del valid
+    del ex_set
+    del proportion
+
 
 # main for learning lpms
 def main_learn_lpm(args):

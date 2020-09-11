@@ -21,7 +21,7 @@ An extensible python program which generates sets of synthetic preference exampl
   |--------------|-------------|
   | 1            | Learning Preferences with Neural Networks.|
   | 2            | Learning Preferences with Lexicographic Preference Models.|
-  | 3            | Learning Preferences with Ranking Preference Formulas.|
+  | 3            | Learning Preferences with Simulated Annealing.|
   | 4            | Various related baselines.|
 
   Subproblem numbers for problems 1-3

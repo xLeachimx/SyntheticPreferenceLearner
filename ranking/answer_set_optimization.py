@@ -155,11 +155,11 @@ class ASO:
     #   None.
     #
     # Postcond:
-    #   Iterates through all neighbors of this RankingPrefFormula object.
+    #   Iterates through all neighbors of this ASO object.
     def neighbors(self):
         for i in range(len(self.ranks)):
             for j in range(len(self.ranks[i])):
-                for k in range(len(self.ranks[j])):
+                for k in range(len(self.ranks[i][j])):
                     result = self._copy()
                     for neighbor in self.ranks[i][j][k].neighbors():
                         result.ranks[i][j][k] = neighbor

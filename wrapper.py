@@ -12,7 +12,7 @@ from conditional.clpm import CLPM
 from conditional.cpnet import CPnet
 import multiprocessing as mp
 
-def main(args):
+def main(args, mp_n):
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
     config = parse_configuration(args.config[0])
     with open(args.output[0],'w') as fout:
@@ -32,13 +32,13 @@ def main(args):
         print(call)
         with open(args.output[0],'a') as fout:
             fout.write('(' + pill_label(agent_types,holder,config[0]) + ';' + str(holder.size) +  ')')
-        pool = mp.Pool(4)
+        pool = mp.Pool(mp_n)
         pool.map(sys_call_wait,[call for i in range(runs)])
         with open(args.output[0],'a') as fout:
             fout.write("\n")
     return 0
 
-def main_multi(args):
+def main_multi(args, mp_n):
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
     config = parse_configuration(args.config[0])
     with open(args.output[0],'w') as fout:
@@ -56,7 +56,7 @@ def main_multi(args):
     label += ';' + str(config[1][0].size)
     with open(args.output[0],'a') as fout:
         fout.write('(' + label +  ')')
-    pool = mp.Pool(4)
+    pool = mp.Pool(mp_n)
     pool.map(sys_call_wait,[call for i in range(runs)])
 
     with open(args.output[0],'a') as fout:
@@ -68,7 +68,7 @@ def sys_call_wait(call):
     time.sleep(5)
 
 
-def main_neighbor(args):
+def main_neighbor(args, mp_n):
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
     config = parse_configuration(args.config[0])
     with open(args.output[0],'w') as fout:
@@ -87,7 +87,7 @@ def main_neighbor(args):
     with open(args.output[0],'a') as fout:
         fout.write('(' + label +  ')')
     start = time.time()
-    pool = mp.Pool(4)
+    pool = mp.Pool(mp_n)
     pool.map(sys_call_wait,[call for i in range(runs)])
     with open(args.output[0],'a') as fout:
         fout.write("\n")
@@ -111,6 +111,16 @@ def build_parser():
 
 
 if __name__=="__main__":
-    # main(build_parser().parse_args())
-    main_multi(build_parser().parse_args())
-    # main_neighbor(build_parser().parse_args())
+    processor_pool = 4
+    args = build_parser().parse_args()
+    print(args.problem)
+    if args.problem[0] == 1:
+        # Number of process to use when learning NNs.
+        processor_pool = 2
+    if args.problem[0] == 4:
+        main_neighbor(args,processor_pool)
+    else:
+        if args.problem[1] == 2 or args.problem[1] == 3:
+            main_multi(args,processor_pool)
+        else:
+            main(args,processor_pool)

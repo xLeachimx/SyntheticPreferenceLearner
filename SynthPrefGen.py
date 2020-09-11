@@ -17,7 +17,7 @@ from weighted.penalty_logic import PenaltyLogic
 from weighted.weighted_average import WeightedAverage
 from conditional.cpnet import CPnet
 from conditional.clpm import CLPM
-from neural.neural_preferences import train_neural_preferences, prepare_example
+from neural.neural_preferences import train_neural_preferences, train_neural_preferences_curve, prepare_example
 from annealing.simulated_annealing import learn_SA, learn_SA_mm
 import annealing.simulated_annealing as SA
 
@@ -94,6 +94,28 @@ def single_run(args, holder, agent_types, config, layers, learn_device):
     del ex_set
     del proportion
 
+def single_run_curve(args, holder, agent_types, config, layers, learn_device):
+    training = 0.0
+    validation = 0.0
+    agent = make_agent(holder,agent_types,config[0])
+    ex_set = build_example_set(agent[0],agent[1],config[0])
+    del agent
+    for train, valid in ex_set.crossvalidation(5):
+        # train.to_tensors(learn_device)
+        # valid.to_tensors(learn_device)
+        start = time()
+        _,curve = train_neural_preferences_curve(train,layers,1000,config[0],learn_device)
+        # learner.to(eval_device)
+        print(time()-start)
+        # pills.append('(' + str(training) + ';' + str(validation) + ')')
+        curve_str = ';'.join(list(map(lambda x: str(x),curve)))
+        with open(args.output[0],'a') as fout:
+            fout.write(',(' + curve_str + ')')
+        torch.cuda.empty_cache()
+        del train
+        del valid
+    del ex_set
+
 def single_run_full(args, holder, agent_types, config, layers, learn_device):
     training = 0.0
     validation = 0.0
@@ -103,13 +125,13 @@ def single_run_full(args, holder, agent_types, config, layers, learn_device):
         # train.to_tensors(learn_device)
         # valid.to_tensors(learn_device)
         start = time()
-        learner = train_neural_preferences(train,layers,1000,config[0],learn_device)
+        learner = train_neural_preferences(train,layers,3000,config[0],learn_device)
         # learner.to(eval_device)
         learner.eval()
         training = evaluate_cuda(train,learner,learn_device)
         validation = evaluate_cuda(valid,learner,learn_device)
-        # full_validation = full_cuda_eval(config[0],learner,agent[0],learn_device)
-        full_validation = -1
+        full_validation = full_cuda_eval(config[0],learner,agent[0],learn_device)
+        # full_validation = -1
         p_graph = build_NN_pref_graph(config[0],learner,learn_device)
         print(time()-start)
         # pills.append('(' + str(training) + ';' + str(validation) + ')')
@@ -141,6 +163,23 @@ def main_learn_nn(args):
     layers = layers[:layer_cut]
     for holder in config[1]:
         single_run(args, holder, agent_types, config, layers, learn_device)
+
+def main_learn_nn_curve(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    agents = []
+    learn_device = None
+    # with open(args.output[0],'w') as fout:
+    #     fout.write('')
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
+    layers = [256,256,256]
+    layer_cut = max(0,args.layers[0])
+    layers = layers[:layer_cut]
+    for holder in config[1]:
+        single_run_curve(args, holder, agent_types, config, layers, learn_device)
 
 def main_learn_nn_full(args):
     config = parse_configuration(args.config[0])
@@ -874,6 +913,7 @@ def build_parser():
 
 if __name__=="__main__":
     args = build_parser().parse_args()
+    # Neural network problems
     if args.problem[0] == 1:
         if args.problem[1] == 1:
             main_learn_nn(args)
@@ -881,8 +921,12 @@ if __name__=="__main__":
             main_learn_joint_nn(args)
         elif args.problem[1] == 4:
             main_learn_nn_full(args) # <-- RETURN HERE
+        elif args.problem[1] == 5:
+            # Neural network learning curve analysis
+            main_learn_nn_curve(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
+    # LPM problems
     elif args.problem[0] == 2:
         if args.problem[1] == 1:
             main_learn_lpm(args)
@@ -894,6 +938,7 @@ if __name__=="__main__":
             main_learn_lpm_full(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
+    # Simulated Annealing problems
     elif args.problem[0] == 3:
         if args.problem[1] == 1:
             main_learn_SA(args)
@@ -905,6 +950,7 @@ if __name__=="__main__":
             main_learn_SA_full(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
+    # Misc. Problems.
     elif args.problem[0] == 4:
         if args.problem[1] == 1:
             main_build_neighbor(args)

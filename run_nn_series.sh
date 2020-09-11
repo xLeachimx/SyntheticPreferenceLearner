@@ -7,10 +7,10 @@ for config in $config_ary
 do
   for i in `seq $MIN $MAX`
   do
-    OUTFILE=$config\_results_$i\L_256
+    OUTFILE=$config\_curve_results_$i\L_256
     echo $OUTFILE
     rm timing.dat
-    python3 wrapper.py -l $i -o $OUTFILE.csv $config.config
+    python3 wrapper.py -p 1 5 -l $i -o $OUTFILE.csv $config.config
     zip $OUTFILE.zip $OUTFILE.csv $config.config timing.dat
   done
 done

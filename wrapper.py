@@ -5,6 +5,7 @@ from utility.configuration_parser import AgentHolder, parse_configuration
 from lexicographic.lpm import LPM
 from lexicographic.lp_tree import LPTree
 from ranking.ranking_formula import RankingPrefFormula
+from ranking.answer_set_optimization import ASO
 from weighted.penalty_logic import PenaltyLogic
 from weighted.weighted_average import WeightedAverage
 from conditional.cpnet import CPnet
@@ -13,7 +14,7 @@ from conditional.cpnet import CPnet
 import multiprocessing as mp
 
 def main(args, mp_n):
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     config = parse_configuration(args.config[0])
     with open(args.output[0],'w') as fout:
         fout.write('')
@@ -39,15 +40,16 @@ def main(args, mp_n):
     return 0
 
 def main_multi(args, mp_n):
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     config = parse_configuration(args.config[0])
     with open(args.output[0],'w') as fout:
         fout.write('')
-    call = "python3 SynthPrefGen.py -o " + args.output[0] + " "
+    call = "python3 SynthPrefGen.py -l " + str(args.layers[0]) + ' '
     prob = list(map(lambda x: str(x),args.problem))
     call += '-p ' + ' '.join(prob) + ' '
     if len(args.learn_conf) == 1:
         call += '-i ' + args.learn_conf[0] + ' '
+    call += "-o " + args.output[0] + " "
     call += args.config[0] + " >> timing.dat"
     runs = 25
     label = ''
@@ -69,15 +71,16 @@ def sys_call_wait(call):
 
 
 def main_neighbor(args, mp_n):
-    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree]
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     config = parse_configuration(args.config[0])
     with open(args.output[0],'w') as fout:
         fout.write('')
-    call = "python3 SynthPrefGen.py -o " + args.output[0] + " "
+    call = "python3 SynthPrefGen.py -l " + str(args.layers[0]) + ' '
     prob = list(map(lambda x: str(x),args.problem))
     call += '-p ' + ' '.join(prob) + ' '
     if len(args.learn_conf) == 1:
         call += '-i ' + args.learn_conf[0] + ' '
+    call += "-o " + args.output[0] + " "
     call += args.config[0] + " >> timing.dat"
     runs = 25
     label = ''
@@ -93,6 +96,33 @@ def main_neighbor(args, mp_n):
         fout.write("\n")
     print("Full Time:",time.time()-start)
     return 0
+
+def main_portfolio(args,mp_n):
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    config = parse_configuration(args.config[0])
+    with open(args.output[0],'w') as fout:
+        fout.write('')
+    call = "python3 SynthPrefGen.py -l " + str(args.layers[0]) + ' '
+    prob = list(map(lambda x: str(x),args.problem))
+    call += '-p ' + ' '.join(prob) + ' '
+    if len(args.learn_conf) == 1:
+        call += '-i ' + args.learn_conf[0] + ' '
+    call += "-o " + args.output[0] + " "
+    call += args.config[0] + " >> timing.dat"
+    runs = 2
+    label = ''
+    for holder in config[1]:
+        label += pill_label(agent_types,holder,config[0])
+    label += ';' + str(config[1][0].size)
+    with open(args.output[0],'a') as fout:
+        fout.write('(' + label +  ')')
+    pool = mp.Pool(mp_n)
+    pool.map(sys_call_wait,[call for i in range(runs)])
+
+    with open(args.output[0],'a') as fout:
+        fout.write("\n")
+    return 0
+
 
 def pill_label(types, holder, domain):
     for type in types:
@@ -114,11 +144,14 @@ if __name__=="__main__":
     processor_pool = 4
     args = build_parser().parse_args()
     print(args.problem)
-    if args.problem[0] == 1:
+    if args.problem[0] == 1 or (args.problem[0] == 4 and args.problem[1] == 4):
         # Number of process to use when learning NNs.
-        processor_pool = 2
+        processor_pool = 1
     if args.problem[0] == 4:
-        main_neighbor(args,processor_pool)
+        if args.problem[1] == 4:
+            main_portfolio(args,processor_pool)
+        else:
+            main_neighbor(args,processor_pool)
     else:
         if args.problem[1] == 2 or args.problem[1] == 3:
             main_multi(args,processor_pool)

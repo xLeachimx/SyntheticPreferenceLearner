@@ -215,7 +215,7 @@ def main_nn_portfolio(args):
     types = []
     example_set = []
     # Generate example sets
-    for copies:
+    for _ in range(copies):
         for holder in config[1]:
             # build agent
             agent = make_agent(holder,agent_types,config[0])
@@ -232,16 +232,18 @@ def main_nn_portfolio(args):
             del agent
             del ex_set
             del features
-    learning_set = PortfolioExampleSet(labels)
+    learning_set = PortfolioExampleSet(types)
     learning_set.add_example_list(example_set)
-    return
+    layers.insert(0,6+config[0].pair_length())
+    layers.append(len(types))
     training = 0.0
     validation = 0.0
     for train, valid in learning_set.crossvalidation(5):
         start = time()
+        print("START")
         learner = train_neural_portfolio(train,layers,1000,learn_device)
+        print("END")
         learner.eval()
-        # TODO: Need to build these functions.
         training = evaluate_portfolio(train,learner,learn_device)
         validation = evaluate_portfolio(valid,learner,learn_device)
         print(time()-start)
@@ -253,8 +255,6 @@ def main_nn_portfolio(args):
         del learner
         del train
         del valid
-    del ex_set
-    del proportion
 
 
 # main for learning lpms
@@ -841,6 +841,31 @@ def evaluate_cuda(ex_set, learner, device=None):
     return count/float(len(ex_set))
 
 # Precond:
+#   ex_set is the example set to evaluate.
+#   learner is the learner to evaluate.
+#   device is the device to run the tests on.
+#
+# Postcond:
+#   Returns the proportion of correctly decided examples in the ex_set.
+def evaluate_portfolio(ex_set, learner, device=None):
+    count = 0
+    for i in range(len(ex_set)):
+        inp,expect = ex_set[i]
+        if device is not None:
+            inp = inp.to(device)
+        label = learner.forward_squash(inp)#.to(torch.device('cpu'))
+        current = 0
+        for j in range(len(label)):
+            if label[j] > label[current]:
+                current = j
+        if current == expect:
+            count += 1
+        del inp
+        del expect
+        del label
+    return count/float(len(ex_set))
+
+# Precond:
 #   pair is a pair of valid Alternative objects.
 #
 # Postcond:
@@ -1017,6 +1042,8 @@ if __name__=="__main__":
             main_build_neighbor_monte_carlo(args)
         elif args.problem[1] == 3:
             main_hillclimb_rr(args)
+        if args.problem[1] == 4:
+            main_nn_portfolio(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
     else:

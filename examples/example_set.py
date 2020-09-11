@@ -234,11 +234,12 @@ class ExampleSet(Dataset):
         return "\n".join(ex)
 
     def get_feature_set(self):
+        domain = self.get(0).get_domain()
         # holds the proportion of example which contain specific relations.
         proportions = [0.0 for i in range(6)]
         # holds the proportion of strict examples where a specific attribute
         #   value pair is dominant.
-        attr_val_dom = [[0.0 for j in range(self.domain.attr_length(i))] for i in range(self.domain.length())]
+        attr_val_dom = [[0.0 for j in range(domain.attr_length(i))] for i in range(domain.length())]
         # counts the number of strict dominance relations.
         dom_count = 0
         # Cycle through examples update our counts.

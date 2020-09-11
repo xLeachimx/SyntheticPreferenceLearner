@@ -181,3 +181,14 @@ class Domain:
     def __str__(self):
         str_vals = list(map(lambda x: str(x), self.value))
         return ' '.join(['D', str(self.attributes), ' '.join(str_vals)])
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the number of attribute-value pairs.
+    def pair_length(self):
+        total = 0
+        for i in range(self.attributes):
+            total += self.attr_length(i)
+        return total

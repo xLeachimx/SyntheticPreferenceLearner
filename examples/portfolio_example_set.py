@@ -60,7 +60,7 @@ class PortfolioExampleSet(Dataset):
     def prepare_example(self, example):
         # label = torch.tensor(example.get_relation().neural_label())
         inp = torch.tensor(example.get_feature())
-        label = torch.tensor(self.labels.index(ex.get_label()))
+        label = self.labels.index(example.get_label())
         return (inp,label)
 
     # Precond:
@@ -104,8 +104,8 @@ class PortfolioExampleSet(Dataset):
     def crossvalidation(self,n):
         self.shuffle()
         for i in range(n):
-            train = PortfolioExampleSet()
-            valid = PortfolioExampleSet()
+            train = PortfolioExampleSet(self.labels)
+            valid = PortfolioExampleSet(self.labels)
             count = 0
             # Before the validation slice
             count = int(len(self.examples)/n)
@@ -113,7 +113,7 @@ class PortfolioExampleSet(Dataset):
             # The validation slice
             valid.add_example_list(self.examples[i*count+1:(i+1)*count])
             # After the validation slice
-            train.add_example_list(self.examples[((i+1)*count])+1:]
+            train.add_example_list(self.examples[((i+1)*count)+1:])
             yield (train,valid)
             del train
             del valid

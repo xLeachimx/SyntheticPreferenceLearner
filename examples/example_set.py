@@ -231,4 +231,37 @@ class ExampleSet(Dataset):
         ex = list(map(lambda x: str(x),ex))
         return "\n".join(ex)
 
-    # TODO: Parsing methods
+    def get_feature_set(self):
+        # holds the proportion of example which contain specific relations.
+        proportions = [0.0 for i in range(6)]
+        # holds the proportion of strict examples where a specific attribute
+        #   value pair is dominant.
+        attr_val_dom = [[0.0 for j in range(self.domain.attr_length(i))] for i in range(self.domain.length())]
+        # counts the number of strict dominance relations.
+        dom_count = 0
+        # Cycle through examples update our counts.
+        for agent in self.examples:
+            for ex in self.examples[agent]:
+                # Count proportions
+                proportions[ex.get_relation().value+2] += 1
+                # Count attribute value pair dominance
+                if ex.get_relation() == Relation.strict_preference():
+                    dom_count += 1
+                    dominant = ex.get_alts()[0]
+                    for i in range(dominant.length()):
+                        attr_val_dom[i][dominant.value(i)-1] += 1
+                elif ex.get_relation() == Relation.strict_dispreference():
+                    dom_count += 1
+                    dominant = ex.get_alts()[1]
+                    for i in range(dominant.length()):
+                        attr_val_dom[i][dominant.value(i)-1] += 1
+        # calculate proportions and dump into results.
+        result = []
+        size = float(len(self))
+        dom_count = float(dom_count)
+        for i in range(len(proportions)):
+            result.append(proportions[i]/size)
+        for i in range(len(attr_val_dom)):
+            for j in range(len(attr_val_dom[i])):
+                result.append(attr_val_dom[i][j]/dom_count)
+        return result

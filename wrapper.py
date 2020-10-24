@@ -109,7 +109,7 @@ def main_portfolio(args,mp_n):
         call += '-i ' + args.learn_conf[0] + ' '
     call += "-o " + args.output[0] + " "
     call += args.config[0] + " >> timing.dat"
-    runs = 2
+    runs = 25
     label = ''
     for holder in config[1]:
         label += pill_label(agent_types,holder,config[0])
@@ -146,7 +146,7 @@ if __name__=="__main__":
     print(args.problem)
     if args.problem[0] == 1 or (args.problem[0] == 4 and args.problem[1] == 4):
         # Number of process to use when learning NNs.
-        processor_pool = 1
+        processor_pool = 2
     if args.problem[0] == 4:
         if args.problem[1] == 4:
             main_portfolio(args,processor_pool)

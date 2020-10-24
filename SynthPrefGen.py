@@ -23,6 +23,7 @@ from neural.neural_preferences import train_neural_preferences, train_neural_pre
 from neural.neural_portfolio import train_neural_portfolio
 from annealing.simulated_annealing import learn_SA, learn_SA_mm
 import annealing.simulated_annealing as SA
+from uuid import uuid4
 
 
 def main(args):
@@ -235,17 +236,18 @@ def main_nn_portfolio(args):
     learning_set = PortfolioExampleSet(types)
     learning_set.add_example_list(example_set)
     layers.insert(0,6+config[0].pair_length())
+    # layers.insert(0,6)
     layers.append(len(types))
     training = 0.0
     validation = 0.0
     for train, valid in learning_set.crossvalidation(5):
         start = time()
         print("START")
-        learner = train_neural_portfolio(train,layers,1000,learn_device)
+        learner = train_neural_portfolio(train,layers,2000,learn_device)
         print("END")
         learner.eval()
-        training = evaluate_portfolio(train,learner,learn_device)
-        validation = evaluate_portfolio(valid,learner,learn_device)
+        training = evaluate_portfolio(train,learner,types,learn_device)
+        validation = evaluate_portfolio(valid,learner,types,learn_device)
         print(time()-start)
         temp = ';'.join([str(training),str(validation)])
         with open(args.output[0],'a') as fout:
@@ -255,6 +257,76 @@ def main_nn_portfolio(args):
         del learner
         del train
         del valid
+
+# main for neural network portfolio learning.
+def main_nn_full_portfolio(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    learn_device = None
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
+    layers = [256 for i in range(max(0,args.layers[0]))]
+    copies = 50
+    types = []
+    example_set = []
+    testing_set = []
+    # Generate example sets
+    for _ in range(copies):
+        for holder in config[1]:
+            # build agent
+            agent = make_agent(holder,agent_types,config[0])
+            # build example_set
+            ex_set = build_full_example_set(agent[0],config[0])
+            test_set = build_example_set(agent[0],agent[1],config[0])
+            # convert to feature vector
+            features = ex_set.get_feature_set()
+            test_features = test_set.get_feature_set()
+            label = holder.type.lower()
+            for i in range(len(agent_types)):
+                if label == agent_types[i].string_id().lower():
+                    if label not in types:
+                        types.append(label)
+            example_set.append(PortfolioExample(features,label))
+            testing_set.append(PortfolioExample(test_features,label))
+            del agent
+            del ex_set
+            del test_set
+            del features
+    learning_set = PortfolioExampleSet(types)
+    testing = PortfolioExampleSet(types)
+    learning_set.add_example_list(example_set)
+    testing.add_example_list(testing_set)
+    layers.insert(0,6+config[0].pair_length())
+    # layers.insert(0,6)
+    layers.append(len(types))
+    training = 0.0
+    validation = 0.0
+    total_training = 0.0
+    total_validation = 0.0
+    for train, valid in learning_set.crossvalidation(5):
+        start = time()
+        print("START")
+        learner = train_neural_portfolio(train,layers,2000,learn_device)
+        print("END")
+        learner.eval()
+        training = evaluate_portfolio(train,learner,types,learn_device)
+        validation = evaluate_portfolio(valid,learner,types,learn_device)
+        print(time()-start)
+        total_training += training
+        total_validation += validation
+        torch.cuda.empty_cache()
+        del learner
+        del train
+        del valid
+    total_training = total_training/5.0
+    total_validation = total_validation/5.0
+    learner = train_neural_portfolio(learning_set, layers, 2000,learn_device)
+    test_acc = evaluate_portfolio(testing, learner, types, learn_device)
+    temp = ';'.join([str(total_training),str(total_validation),str(test_acc)])
+    with open(args.output[0],'a') as fout:
+        fout.write(',(' + temp + ')')
 
 
 # main for learning lpms
@@ -847,7 +919,11 @@ def evaluate_cuda(ex_set, learner, device=None):
 #
 # Postcond:
 #   Returns the proportion of correctly decided examples in the ex_set.
-def evaluate_portfolio(ex_set, learner, device=None):
+def evaluate_portfolio(ex_set, learner, labels, device=None):
+    fname = 'mistakes/mistakes_' + str(uuid4()) + '.txt'
+    fout = open(fname, 'w')
+    fout.close()
+    del fout
     count = 0
     for i in range(len(ex_set)):
         inp,expect = ex_set[i]
@@ -858,8 +934,12 @@ def evaluate_portfolio(ex_set, learner, device=None):
         for j in range(len(label)):
             if label[j] > label[current]:
                 current = j
+        des_str = "(" + str(labels[current]) + ',' + str(labels[expect]) + ")\n"
         if current == expect:
             count += 1
+        else:
+            with open(fname, 'a') as fout:
+                fout.write(des_str + "\n")
         del inp
         del expect
         del label
@@ -967,6 +1047,18 @@ def build_example_set(agent, size, domain):
     for pair in pairs:
         result.add_example(agent.build_example(pair[0],pair[1]))
     del pairs
+    return result
+
+# Precond:
+#   agent is a valid Agent object.
+#   domain is the domain of the agent.
+#
+# Postcond:
+#   Returns an example set which includes all possible pairs for the agent.
+def build_full_example_set(agent, domain):
+    result = ExampleSet()
+    for pair in domain.each_pair():
+        result.add_example(agent.build_example(pair[0],pair[1]))
     return result
 
 # Precond:

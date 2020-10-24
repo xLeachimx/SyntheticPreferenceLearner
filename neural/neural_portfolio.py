@@ -48,12 +48,14 @@ def train_neural_portfolio(ex_set, layers, epochs, device=None):
         result = result.to(device)
     # criterion = nn.L1Loss()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(result.parameters(), lr=0.01)
-    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
-    scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=100)
+    # optimizer = optim.ASGD(result.parameters(), lr=0.001)
+    optimizer = optim.Adam(result.parameters(), lr=0.001)
+    # optimizer = optim.Adagrad(result.parameters(), lr=0.001)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=0)
+    # scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=1000)
     for epoch in range(epochs):
         globalLoss = 0.0
-        for examples in DataLoader(dataset=ex_set, batch_size=10, pin_memory=True):
+        for examples in DataLoader(dataset=ex_set, batch_size=5, pin_memory=True):
             inps = labels = None
             if device is not None:
                 inps, labels = examples[0].to(device), examples[1].to(device)
@@ -72,7 +74,7 @@ def train_neural_portfolio(ex_set, layers, epochs, device=None):
             del examples
         scheduler.step(globalLoss)
         # Debug line
-        print(epoch,"->",globalLoss)
+        # print(epoch,"->",globalLoss)
     del ex_set
     del optimizer
     del scheduler

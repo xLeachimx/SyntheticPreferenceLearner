@@ -259,6 +259,8 @@ class ExampleSet(Dataset):
                     for i in range(dominant.length()):
                         attr_val_dom[i][dominant.value(i)-1] += 1
         # calculate proportions and dump into results.
+        if dom_count == 0:
+            dom_count == 1
         result = []
         size = float(len(self))
         dom_count = float(dom_count)

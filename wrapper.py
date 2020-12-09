@@ -144,11 +144,11 @@ if __name__=="__main__":
     processor_pool = 4
     args = build_parser().parse_args()
     print(args.problem)
-    if args.problem[0] == 1 or (args.problem[0] == 4 and args.problem[1] == 4):
+    if args.problem[0] == 1 or (args.problem[0] == 4 and (args.problem[1] == 4 or args.problem[1] == 5)):
         # Number of process to use when learning NNs.
         processor_pool = 2
     if args.problem[0] == 4:
-        if args.problem[1] == 4:
+        if args.problem[1] == 4 or args.problem[1] == 5:
             main_portfolio(args,processor_pool)
         else:
             main_neighbor(args,processor_pool)

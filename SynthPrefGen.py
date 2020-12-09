@@ -1136,6 +1136,8 @@ if __name__=="__main__":
             main_hillclimb_rr(args)
         if args.problem[1] == 4:
             main_nn_portfolio(args)
+        if args.problem[1] == 5:
+            main_nn_full_portfolio(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
     else:

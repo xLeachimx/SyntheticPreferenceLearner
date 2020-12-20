@@ -7,6 +7,8 @@ from examples.agent import Agent
 from examples.example_set import ExampleSet
 from examples.portfolio_example import PortfolioExample
 from examples.portfolio_example_set import PortfolioExampleSet
+from examples.GCN_example import GCNExample
+from examples.GCN_example_set import GCNExampleSet
 from examples.relation import Relation
 from utility.configuration_parser import AgentHolder, parse_configuration
 from utility.neighbor_graph import NeighborGraph
@@ -21,6 +23,7 @@ from conditional.cpnet import CPnet
 from conditional.clpm import CLPM
 from neural.neural_preferences import train_neural_preferences, train_neural_preferences_curve, prepare_example
 from neural.neural_portfolio import train_neural_portfolio
+from neural.neural_portfolio_gcn import train_neural_portfolio_gcn
 from annealing.simulated_annealing import learn_SA, learn_SA_mm
 import annealing.simulated_annealing as SA
 from uuid import uuid4
@@ -323,6 +326,73 @@ def main_nn_full_portfolio(args):
     total_training = total_training/5.0
     total_validation = total_validation/5.0
     learner = train_neural_portfolio(learning_set, layers, 2000,learn_device)
+    test_acc = evaluate_portfolio(testing, learner, types, learn_device)
+    temp = ';'.join([str(total_training),str(total_validation),str(test_acc)])
+    with open(args.output[0],'a') as fout:
+        fout.write(',(' + temp + ')')
+
+# main for GCN neural network portfolio learning.
+def main_nn_full_portfolio_gcn(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    learn_device = None
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
+    layers = [128 for i in range(max(0,args.layers[0]))]
+    copies = 50
+    types = []
+    example_set = []
+    testing_set = []
+    # Generate example sets
+    for _ in range(copies):
+        for holder in config[1]:
+            # build agent
+            agent = make_agent(holder,agent_types,config[0])
+            # build example_set
+            ex_set = build_full_example_set(agent[0],config[0])
+            test_set = build_example_set(agent[0],agent[1],config[0])
+            label = holder.type.lower()
+            for i in range(len(agent_types)):
+                if label == agent_types[i].string_id().lower():
+                    if label not in types:
+                        types.append(label)
+            # Convert example sets to needed GCN example sets and add them.
+            example_set.append(GCNExample(ex_set, label))
+            testing_set.append(GCNExample(test_set, label))
+            del agent
+            del ex_set
+            del test_set
+    learning_set = GCNExampleSet(types)
+    testing = GCNExampleSet(types)
+    learning_set.add_example_list(example_set)
+    testing.add_example_list(testing_set)
+    layers.insert(0,config[0].length())
+    # layers.insert(0,6)
+    layers.append(len(types))
+    training = 0.0
+    validation = 0.0
+    total_training = 0.0
+    total_validation = 0.0
+    for train, valid in learning_set.crossvalidation(5):
+        start = time()
+        print("START")
+        learner = train_neural_portfolio_gcn(train,layers,2000,learn_device)
+        print("END")
+        learner.eval()
+        training = evaluate_portfolio(train,learner,types,learn_device)
+        validation = evaluate_portfolio(valid,learner,types,learn_device)
+        print(time()-start)
+        total_training += training
+        total_validation += validation
+        torch.cuda.empty_cache()
+        del learner
+        del train
+        del valid
+    total_training = total_training/5.0
+    total_validation = total_validation/5.0
+    learner = train_neural_portfolio_gcn(learning_set, layers, 2000,learn_device)
     test_acc = evaluate_portfolio(testing, learner, types, learn_device)
     temp = ';'.join([str(total_training),str(total_validation),str(test_acc)])
     with open(args.output[0],'a') as fout:
@@ -1138,6 +1208,8 @@ if __name__=="__main__":
             main_nn_portfolio(args)
         if args.problem[1] == 5:
             main_nn_full_portfolio(args)
+        if args.problem[1] == 6:
+            main_nn_full_portfolio_gcn(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
     else:

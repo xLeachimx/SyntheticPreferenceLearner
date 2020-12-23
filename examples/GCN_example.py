@@ -57,3 +57,6 @@ class GCNExample:
             edge_tensor = torch.tensor(edges, dtype=torch.long)
             self.data = Data(x=node_tensor, edge_index=edge_tensor.t().contiguous())
             self.label = label
+
+    def to(self, device):
+        self.data = self.data.to(device)

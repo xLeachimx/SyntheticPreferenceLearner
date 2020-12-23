@@ -340,7 +340,8 @@ def main_nn_full_portfolio_gcn(args):
         learn_device = torch.device('cuda')
     else:
         learn_device = torch.device('cpu')
-    layers = [128 for i in range(max(0,args.layers[0]))]
+    lin_layers = [256 for i in range(max(0,args.layers[0]))]
+    conv_layers = [128 for i in range(max(1,args.layers[0]))]
     copies = 50
     types = []
     example_set = []
@@ -368,9 +369,13 @@ def main_nn_full_portfolio_gcn(args):
     testing = GCNExampleSet(types)
     learning_set.add_example_list(example_set)
     testing.add_example_list(testing_set)
-    layers.insert(0,config[0].length())
-    # layers.insert(0,6)
-    layers.append(len(types))
+    if len(conv_layers) > 0 and len(lin_layers) > 0:
+        conv_layers.insert(0,config[0].length())
+        lin_layers.insert(0,conv_layers[-1])
+        lin_layers.append(len(types))
+    elif len(conv_layers) > 0 and len(lin_layers) == 0:
+        conv_layers.insert(0, config[0].length())
+        conv_layers.append(len(types))
     training = 0.0
     validation = 0.0
     total_training = 0.0
@@ -378,11 +383,11 @@ def main_nn_full_portfolio_gcn(args):
     for train, valid in learning_set.crossvalidation(5):
         start = time()
         print("START")
-        learner = train_neural_portfolio_gcn(train,layers,2000,learn_device)
+        learner = train_neural_portfolio_gcn(train,conv_layers,lin_layers,2000,learn_device)
         print("END")
         learner.eval()
-        training = evaluate_portfolio(train,learner,types,learn_device)
-        validation = evaluate_portfolio(valid,learner,types,learn_device)
+        training = evaluate_portfolio_gcn(train,learner,types,learn_device)
+        validation = evaluate_portfolio_gcn(valid,learner,types,learn_device)
         print(time()-start)
         total_training += training
         total_validation += validation
@@ -392,8 +397,8 @@ def main_nn_full_portfolio_gcn(args):
         del valid
     total_training = total_training/5.0
     total_validation = total_validation/5.0
-    learner = train_neural_portfolio_gcn(learning_set, layers, 2000,learn_device)
-    test_acc = evaluate_portfolio(testing, learner, types, learn_device)
+    learner = train_neural_portfolio_gcn(learning_set, conv_layers, lin_layers, 2000,learn_device)
+    test_acc = evaluate_portfolio_gcn(testing, learner, types, learn_device)
     temp = ';'.join([str(total_training),str(total_validation),str(test_acc)])
     with open(args.output[0],'a') as fout:
         fout.write(',(' + temp + ')')
@@ -1001,6 +1006,7 @@ def evaluate_portfolio(ex_set, learner, labels, device=None):
             inp = inp.to(device)
         label = learner.forward_squash(inp)#.to(torch.device('cpu'))
         current = 0
+        print(label)
         for j in range(len(label)):
             if label[j] > label[current]:
                 current = j
@@ -1014,6 +1020,40 @@ def evaluate_portfolio(ex_set, learner, labels, device=None):
         del expect
         del label
     return count/float(len(ex_set))
+
+# Precond:
+#   ex_set is the example set to evaluate.
+#   learner is the learner to evaluate.
+#   device is the device to run the tests on.
+#
+# Postcond:
+#   Returns the proportion of correctly decided examples in the ex_set.
+def evaluate_portfolio_gcn(ex_set, learner, labels, device=None):
+    fname = 'mistakes/mistakes_' + str(uuid4()) + '.txt'
+    fout = open(fname, 'w')
+    fout.close()
+    del fout
+    count = 0
+    for i in range(len(ex_set)):
+        inp,expect = ex_set[i]
+        if device is not None:
+            inp = inp.to(device)
+        label = learner.forward_squash(inp)[0]#.to(torch.device('cpu'))
+        current = 0
+        for j in range(len(label)):
+            if label[j] > label[current]:
+                current = j
+        des_str = "(" + str(labels[current]) + ',' + str(labels[expect]) + ")\n"
+        if current == expect:
+            count += 1
+        else:
+            with open(fname, 'a') as fout:
+                fout.write(des_str + "\n")
+        del inp
+        del expect
+        del label
+    return count/float(len(ex_set))
+
 
 # Precond:
 #   pair is a pair of valid Alternative objects.

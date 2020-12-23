@@ -5,7 +5,8 @@
 #   Defines an example set for GCN portfolio learning.
 
 from random import shuffle
-from torch.utils.data import Dataset
+# from torch.utils.data import Dataset
+from torch_geometric.data import Dataset
 from .relation import Relation
 import torch
 
@@ -18,6 +19,7 @@ class GCNExampleSet(Dataset):
     def __init__(self, labels):
         self.examples = []
         self.labels = labels
+        self.device = None
 
     # Precond:
     #   example is a valid Example object.
@@ -60,7 +62,13 @@ class GCNExampleSet(Dataset):
     def prepare_example(self, example):
         inp = example.data
         label = self.labels.index(example.label)
+        if self.device is not None:
+            inp = inp.to(self.device)
+            # label = label.to(self.device)
         return (inp,label)
+
+    def to_dev(self, device):
+        self.device = device
 
     # Precond:
     #   None.

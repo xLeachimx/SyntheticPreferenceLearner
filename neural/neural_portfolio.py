@@ -63,6 +63,7 @@ def train_neural_portfolio(ex_set, layers, epochs, device=None):
                 inps, labels = examples
             optimizer.zero_grad()
             outputs = result(inps)
+            print(outputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()

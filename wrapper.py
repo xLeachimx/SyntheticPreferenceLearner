@@ -109,6 +109,7 @@ def main_portfolio(args,mp_n):
         call += '-i ' + args.learn_conf[0] + ' '
     call += "-o " + args.output[0] + " "
     call += args.config[0] + " >> timing.dat"
+    # call += args.config[0]
     runs = 25
     label = ''
     for holder in config[1]:
@@ -144,11 +145,11 @@ if __name__=="__main__":
     processor_pool = 4
     args = build_parser().parse_args()
     print(args.problem)
-    if args.problem[0] == 1 or (args.problem[0] == 4 and (args.problem[1] == 4 or args.problem[1] == 5)):
+    if args.problem[0] == 1 or (args.problem[0] == 4 and (args.problem[1] == 4 or args.problem[1] == 5 or args.problem[1] == 6)):
         # Number of process to use when learning NNs.
-        processor_pool = 2
+        processor_pool = 1
     if args.problem[0] == 4:
-        if args.problem[1] == 4 or args.problem[1] == 5:
+        if args.problem[1] == 4 or args.problem[1] == 5 or args.problem[1] == 6:
             main_portfolio(args,processor_pool)
         else:
             main_neighbor(args,processor_pool)

@@ -2,6 +2,7 @@ import argparse
 import os
 import torch
 import gc
+from math import sqrt
 from time import time
 from examples.agent import Agent
 from examples.example_set import ExampleSet
@@ -332,7 +333,7 @@ def main_nn_full_portfolio(args):
         fout.write(',(' + temp + ')')
 
 # main for GCN neural network portfolio learning.
-def main_nn_full_portfolio_gcn(args):
+def main_nn_portfolio_gcn(args):
     config = parse_configuration(args.config[0])
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
     learn_device = None
@@ -352,8 +353,8 @@ def main_nn_full_portfolio_gcn(args):
             # build agent
             agent = make_agent(holder,agent_types,config[0])
             # build example_set
-            ex_set = build_full_example_set(agent[0],config[0])
-            test_set = build_example_set(agent[0],agent[1],config[0])
+            ex_set = build_example_set_gcn(agent[0],agent[1],config[0])
+            test_set = build_example_set_gcn(agent[0],agent[1],config[0])
             label = holder.type.lower()
             for i in range(len(agent_types)):
                 if label == agent_types[i].string_id().lower():
@@ -376,6 +377,7 @@ def main_nn_full_portfolio_gcn(args):
     elif len(conv_layers) > 0 and len(lin_layers) == 0:
         conv_layers.insert(0, config[0].length())
         conv_layers.append(len(types))
+    print(conv_layers)
     training = 0.0
     validation = 0.0
     total_training = 0.0
@@ -1161,6 +1163,22 @@ def build_example_set(agent, size, domain):
 
 # Precond:
 #   agent is a valid Agent object.
+#   size is the number of examples in the example set.
+#   domain is the domain of the agent.
+#
+# Postcond:
+#   Returns the example set for the agent.
+def build_example_set_gcn(agent, size, domain):
+    result = ExampleSet()
+    alts = domain.sample(int(sqrt(size)))
+    for i in range(len(alts)):
+        for j in range(i+1,len(alts)):
+            result.add_example(agent.build_example(alts[i],alts[j]))
+    del alts
+    return result
+
+# Precond:
+#   agent is a valid Agent object.
 #   domain is the domain of the agent.
 #
 # Postcond:
@@ -1249,7 +1267,7 @@ if __name__=="__main__":
         if args.problem[1] == 5:
             main_nn_full_portfolio(args)
         if args.problem[1] == 6:
-            main_nn_full_portfolio_gcn(args)
+            main_nn_portfolio_gcn(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
     else:

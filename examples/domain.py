@@ -58,6 +58,21 @@ class Domain:
         return result
 
     # Precond:
+    #   size is the number of alternatives to select.
+    #
+    # Postcond:
+    #   Returns a random sampling of alternatives.
+    def sample(self, size):
+        alts = []
+        for i in range(size):
+            temp = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+            while temp in alts:
+                temp = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+            alts.append(temp)
+        return alts
+
+
+    # Precond:
     #   None.
     #
     # Postcond:

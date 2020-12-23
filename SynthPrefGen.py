@@ -384,11 +384,11 @@ def main_nn_full_portfolio_gcn(args):
         start = time()
         print("START")
         learner = train_neural_portfolio_gcn(train,conv_layers,lin_layers,2000,learn_device)
+        print(time()-start)
         print("END")
         learner.eval()
         training = evaluate_portfolio_gcn(train,learner,types,learn_device)
         validation = evaluate_portfolio_gcn(valid,learner,types,learn_device)
-        print(time()-start)
         total_training += training
         total_validation += validation
         torch.cuda.empty_cache()

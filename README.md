@@ -42,6 +42,9 @@ An extensible python program which generates sets of synthetic preference exampl
   | 1          | Builds and analyzes full fitness graph.|
   | 2          | Builds and analyzes partial fitness graph using hill climbing.|
   | 3          | Analyzes basic hill climbing and random restart approach. |
+  | 4          | Example set classification using custom feature vectors. |
+  | 5          | Example set classification using custom feature vectors (complete relation example set, for learning). |
+  | 6          | Example set classification using graph convolutions (complete relation example set, for learning). |
 
   `-i [config file]`
 

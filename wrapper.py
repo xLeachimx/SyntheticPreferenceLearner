@@ -111,10 +111,11 @@ def main_portfolio(args,mp_n):
     call += args.config[0] + " >> timing.dat"
     # call += args.config[0]
     runs = 25
-    label = ''
+    label = []
     for holder in config[1]:
-        label += pill_label(agent_types,holder,config[0])
-    label += ';' + str(config[1][0].size)
+        label.append(pill_label(agent_types,holder,config[0]))
+    label.append(str(config[1][0].size))
+    label = '|'.join(label)
     with open(args.output[0],'a') as fout:
         fout.write('(' + label +  ')')
     pool = mp.Pool(mp_n)

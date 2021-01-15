@@ -341,7 +341,68 @@ def main_nn_portfolio_gcn(args):
         learn_device = torch.device('cuda')
     else:
         learn_device = torch.device('cpu')
-    lin_layers = [256 for i in range(max(0,args.layers[0]))]
+    lin_layers = [256 for i in range(max(1,args.layers[0]))]
+    conv_layers = [128 for i in range(max(1,args.layers[0]))]
+    copies = 50
+    types = []
+    example_set = []
+    # Generate example sets
+    for _ in range(copies):
+        for holder in config[1]:
+            # build agent
+            agent = make_agent(holder,agent_types,config[0])
+            # build example_set
+            ex_set = build_example_set_gcn(agent[0],agent[1],config[0])
+            label = holder.type.lower()
+            for i in range(len(agent_types)):
+                if label == agent_types[i].string_id().lower():
+                    if label not in types:
+                        types.append(label)
+            # Convert example sets to needed GCN example sets and add them.
+            example_set.append(GCNExample(ex_set, label))
+            del agent
+            del ex_set
+    learning_set = GCNExampleSet(types)
+    learning_set.add_example_list(example_set)
+    if len(conv_layers) > 0 and len(lin_layers) > 0:
+        conv_layers.insert(0,config[0].length())
+        lin_layers.insert(0,conv_layers[-1])
+        lin_layers.append(len(types))
+    elif len(conv_layers) > 0 and len(lin_layers) == 0:
+        conv_layers.insert(0, config[0].length())
+        conv_layers.append(len(types))
+    training = 0.0
+    validation = 0.0
+    total_training = 0.0
+    total_validation = 0.0
+    for train, valid in learning_set.crossvalidation(5):
+        start = time()
+        learner = train_neural_portfolio_gcn(train,conv_layers,lin_layers,1000,learn_device)
+        print(time()-start)
+        learner.eval()
+        training = evaluate_portfolio_gcn(train,learner,types,learn_device)
+        validation = evaluate_portfolio_gcn(valid,learner,types,learn_device)
+        total_training += training
+        total_validation += validation
+        torch.cuda.empty_cache()
+        del learner
+        del train
+        del valid
+    total_training = total_training/5.0
+    total_validation = total_validation/5.0
+    temp = ';'.join([str(total_training),str(total_validation)])
+    with open(args.output[0],'a') as fout:
+        fout.write(',(' + temp + ')')
+
+def main_nn_portfolio_gcn_full(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    learn_device = None
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
+    lin_layers = [256 for i in range(max(1,args.layers[0]))]
     conv_layers = [128 for i in range(max(1,args.layers[0]))]
     copies = 50
     types = []
@@ -353,7 +414,7 @@ def main_nn_portfolio_gcn(args):
             # build agent
             agent = make_agent(holder,agent_types,config[0])
             # build example_set
-            ex_set = build_example_set_gcn(agent[0],agent[1],config[0])
+            ex_set = build_full_example_set(agent[0],config[0])
             test_set = build_example_set_gcn(agent[0],agent[1],config[0])
             label = holder.type.lower()
             for i in range(len(agent_types)):
@@ -377,17 +438,14 @@ def main_nn_portfolio_gcn(args):
     elif len(conv_layers) > 0 and len(lin_layers) == 0:
         conv_layers.insert(0, config[0].length())
         conv_layers.append(len(types))
-    print(conv_layers)
     training = 0.0
     validation = 0.0
     total_training = 0.0
     total_validation = 0.0
     for train, valid in learning_set.crossvalidation(5):
         start = time()
-        print("START")
-        learner = train_neural_portfolio_gcn(train,conv_layers,lin_layers,2000,learn_device)
+        learner = train_neural_portfolio_gcn(train,conv_layers,lin_layers,1000,learn_device)
         print(time()-start)
-        print("END")
         learner.eval()
         training = evaluate_portfolio_gcn(train,learner,types,learn_device)
         validation = evaluate_portfolio_gcn(valid,learner,types,learn_device)
@@ -1170,7 +1228,7 @@ def build_example_set(agent, size, domain):
 #   Returns the example set for the agent.
 def build_example_set_gcn(agent, size, domain):
     result = ExampleSet()
-    alts = domain.sample(int(sqrt(size)))
+    alts = domain.sample(int(sqrt(2*size)))
     for i in range(len(alts)):
         for j in range(i+1,len(alts)):
             result.add_example(agent.build_example(alts[i],alts[j]))
@@ -1268,6 +1326,8 @@ if __name__=="__main__":
             main_nn_full_portfolio(args)
         if args.problem[1] == 6:
             main_nn_portfolio_gcn(args)
+        if args.problem[1] == 7:
+            main_nn_portfolio_gcn_full(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
     else:

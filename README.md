@@ -45,6 +45,7 @@ An extensible python program which generates sets of synthetic preference exampl
   | 4          | Example set classification using custom feature vectors. |
   | 5          | Example set classification using custom feature vectors (complete relation example set, for learning). |
   | 6          | Example set classification using graph convolutions. |
+  | 7          | Example set classification using graph convolutions (complete relation example set, for learning).
 
   `-i [config file]`
 

@@ -54,6 +54,9 @@ class GCNExample:
                 edges.append(alt_indices)
             # Convert to tensors
             node_tensor = torch.tensor(nodes, dtype=torch.float)
+            # Solve problem with empty edge list
+            if len(edges) == 0:
+                edges.append([0,0])
             edge_tensor = torch.tensor(edges, dtype=torch.long)
             self.data = Data(x=node_tensor, edge_index=edge_tensor.t().contiguous())
             self.label = label

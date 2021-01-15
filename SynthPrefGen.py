@@ -410,8 +410,8 @@ def main_nn_portfolio_gcn_full(args):
     example_set = []
     testing_set = []
     # Generate example sets
-    for _ in range(copies):
-        for holder in config[1]:
+    for holder in config[1]:
+        for _ in range(copies):
             # build agent
             agent = make_agent(holder,agent_types,config[0])
             # build example_set

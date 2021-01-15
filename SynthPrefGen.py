@@ -419,10 +419,8 @@ def main_nn_portfolio_gcn_full(args):
             label = holder.type.lower()
             # Faster generation of example by not going through intermediaries.
             example_set.append(GCNExampleFull(config[0],agent,label))
-            for i in range(len(agent_types)):
-                if label == agent_types[i].string_id().lower():
-                    if label not in types:
-                        types.append(label)
+            if label not in types:
+                types.append(label)
             # Convert example sets to needed GCN example sets and add them.
             testing_set.append(GCNExample(test_set, label))
             del agent

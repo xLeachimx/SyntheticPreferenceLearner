@@ -9,6 +9,7 @@ from examples.example_set import ExampleSet
 from examples.portfolio_example import PortfolioExample
 from examples.portfolio_example_set import PortfolioExampleSet
 from examples.GCN_example import GCNExample
+from examples.GCN_example_full import GCNExampleFull
 from examples.GCN_example_set import GCNExampleSet
 from examples.relation import Relation
 from utility.configuration_parser import AgentHolder, parse_configuration
@@ -414,18 +415,17 @@ def main_nn_portfolio_gcn_full(args):
             # build agent
             agent = make_agent(holder,agent_types,config[0])
             # build example_set
-            ex_set = build_full_example_set(agent[0],config[0])
             test_set = build_example_set_gcn(agent[0],agent[1],config[0])
             label = holder.type.lower()
+            # Faster generation of example by not going through intermediaries.
+            example_set.append(GCNExampleFull(config[0],agent,label))
             for i in range(len(agent_types)):
                 if label == agent_types[i].string_id().lower():
                     if label not in types:
                         types.append(label)
             # Convert example sets to needed GCN example sets and add them.
-            example_set.append(GCNExample(ex_set, label))
             testing_set.append(GCNExample(test_set, label))
             del agent
-            del ex_set
             del test_set
     learning_set = GCNExampleSet(types)
     testing = GCNExampleSet(types)

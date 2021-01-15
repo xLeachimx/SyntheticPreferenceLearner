@@ -43,14 +43,14 @@ class GCNExample:
             # Generate set of edges.
             if ex.get_relation() == Relation.strict_dispreference():
                 edges.append(alt_indices[::-1])
-            if ex.get_relation() == Relation.dispreference():
+            elif ex.get_relation() == Relation.dispreference():
                 edges.append(alt_indices[::-1])
-            if ex.get_relation() == Relation.equal():
+            elif ex.get_relation() == Relation.equal():
                 edges.append(alt_indices[::-1])
                 edges.append(alt_indices)
-            if ex.get_relation() == Relation.preference():
+            elif ex.get_relation() == Relation.preference():
                 edges.append(alt_indices)
-            if ex.get_relation() == Relation.strict_preference():
+            elif ex.get_relation() == Relation.strict_preference():
                 edges.append(alt_indices)
             # Convert to tensors
             node_tensor = torch.tensor(nodes, dtype=torch.float)

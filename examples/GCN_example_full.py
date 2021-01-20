@@ -21,7 +21,7 @@ class GCNExampleFull:
     def __init__(self, domain, agent, label):
         self.data = None
         self.label = None
-        self.build_graph(domain, agent, self.label)
+        self.build_graph(domain, agent, label)
 
     # Precond:
     #   domain is a valid Domain object.

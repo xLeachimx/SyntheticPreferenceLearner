@@ -1,5 +1,6 @@
 import argparse
 import time
+import torch
 from os import system
 from utility.configuration_parser import AgentHolder, parse_configuration
 from lexicographic.lpm import LPM
@@ -108,8 +109,8 @@ def main_portfolio(args,mp_n):
     if len(args.learn_conf) == 1:
         call += '-i ' + args.learn_conf[0] + ' '
     call += "-o " + args.output[0] + " "
-    call += args.config[0] + " >> timing.dat"
-    # call += args.config[0]
+    # call += args.config[0] + " >> timing.dat"
+    call += args.config[0]
     runs = 25
     label = []
     for holder in config[1]:
@@ -143,6 +144,8 @@ def build_parser():
 
 
 if __name__=="__main__":
+    if torch.cuda.is_available():
+        print("Cuda Online")
     processor_pool = 4
     args = build_parser().parse_args()
     print(args.problem)

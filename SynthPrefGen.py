@@ -403,13 +403,14 @@ def main_nn_portfolio_gcn_full(args):
         learn_device = torch.device('cuda')
     else:
         learn_device = torch.device('cpu')
-    lin_layers = [256 for i in range(max(1,args.layers[0]))]
-    conv_layers = [128 for i in range(max(1,args.layers[0]))]
+    lin_layers = [128 for i in range(max(1,args.layers[0]))]
+    conv_layers = [64 for i in range(max(1,args.layers[0]))]
     copies = 50
     types = []
     example_set = []
     testing_set = []
     # Generate example sets
+    ex_start = time()
     for holder in config[1]:
         for _ in range(copies):
             # build agent
@@ -419,12 +420,15 @@ def main_nn_portfolio_gcn_full(args):
             label = holder.type.lower()
             # Faster generation of example by not going through intermediaries.
             example_set.append(GCNExampleFull(config[0],agent[0],label))
-            if label not in types:
-                types.append(label)
+            for i in range(len(agent_types)):
+                if label == agent_types[i].string_id().lower():
+                    if label not in types:
+                        types.append(label)
             # Convert example sets to needed GCN example sets and add them.
             testing_set.append(GCNExample(test_set, label))
             del agent
             del test_set
+    print("Examples generated:",time()-ex_start)
     learning_set = GCNExampleSet(types)
     testing = GCNExampleSet(types)
     learning_set.add_example_list(example_set)
@@ -455,7 +459,7 @@ def main_nn_portfolio_gcn_full(args):
         del valid
     total_training = total_training/5.0
     total_validation = total_validation/5.0
-    learner = train_neural_portfolio_gcn(learning_set, conv_layers, lin_layers, 2000,learn_device)
+    learner = train_neural_portfolio_gcn(learning_set, conv_layers, lin_layers,1000,learn_device)
     test_acc = evaluate_portfolio_gcn(testing, learner, types, learn_device)
     temp = ';'.join([str(total_training),str(total_validation),str(test_acc)])
     with open(args.output[0],'a') as fout:

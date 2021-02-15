@@ -37,6 +37,20 @@ class AgentHolder:
         result += "END\n"
         return result
 
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns a string representation of the agent holder.
+    def to_s(self):
+        result = self.type
+        info_strs = []
+        for item in self.info:
+            info_strs.append(str(item) + ":" + str(self.info[item]))
+        info_strs = '-'.join(info_strs)
+        return result+';'+info_strs
+
+
 # Precond:
 #   filename is the name of a valid configuration file.
 #

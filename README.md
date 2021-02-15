@@ -5,7 +5,14 @@ An extensible python program which generates sets of synthetic preference exampl
 ## Dependencies:
 
   Pytorch: https://pytorch.org/
+
   GenCPNet: https://github.com/nmattei/GenCPnet
+
+  Torch-Sparse: https://github.com/rusty1s/pytorch_sparse
+
+  Torch-Scatter: https://github.com/rusty1s/pytorch_scatter
+
+  Torch-Geometric: https://github.com/rusty1s/pytorch_geometric
 
 
 ## Usage:

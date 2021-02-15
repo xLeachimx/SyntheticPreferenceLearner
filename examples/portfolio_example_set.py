@@ -117,3 +117,15 @@ class PortfolioExampleSet(Dataset):
             yield (train,valid)
             del train
             del valid
+
+    # Precond:
+    #   fout is a I/O handle.
+    #
+    # Postcond:
+    #   Outputs the example set in a easily readable fashion.
+    def to_file(self,fout):
+        str_labels = list(map(lambda x: str(x),self.labels))
+        str_labels = ','.join(str_labels)
+        fout.write("LABELS:",str_labels,"\n")
+        for example in self.examples:
+            fout.write("EX:",example.to_s(),"\n")

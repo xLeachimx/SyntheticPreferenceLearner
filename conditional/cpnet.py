@@ -153,6 +153,17 @@ class CPnet:
         return ind
 
     # Precond:
+    #  domain is a valid Domain object.
+    #
+    # Postcond:
+    #   Returns a random info batch for generation.
+    @staticmethod
+    def random_info(domain):
+        info = {}
+        info['indegree'] = randint(0,domain.length())
+        return info
+
+    # Precond:
     #   domain is a valid Domain object.
     #   info is a valid dictionary (data unused, but important for typing).
     #

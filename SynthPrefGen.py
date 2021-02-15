@@ -4,8 +4,10 @@ import torch
 import gc
 from math import sqrt
 from time import time
+from datetime import date
 from examples.agent import Agent
 from examples.example_set import ExampleSet
+from examples.domain import Domain
 from examples.portfolio_example import PortfolioExample
 from examples.portfolio_example_set import PortfolioExampleSet
 from examples.GCN_example import GCNExample
@@ -464,6 +466,176 @@ def main_nn_portfolio_gcn_full(args):
     temp = ';'.join([str(total_training),str(total_validation),str(test_acc)])
     with open(args.output[0],'a') as fout:
         fout.write(',(' + temp + ')')
+
+def main_build_portfolio_training_set(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    copies = 500
+    types = []
+    example_set = []
+    ex_set_size = 0
+    # Generate example sets
+    for _ in range(copies):
+        for holder in config[1]:
+            # build agent
+            agent = make_agent(holder,agent_types,config[0])
+            # build example_set
+            ex_set = build_example_set(agent[0],agent[1],config[0])
+            ex_set_size = max(ex_set_size,agent[1])
+            # convert to feature vector
+            features = ex_set.get_feature_set()
+            label = holder.type.lower()
+            for i in range(len(agent_types)):
+                if label == agent_types[i].string_id().lower():
+                    if label not in types:
+                        types.append(label)
+            example_set.append(PortfolioExample(features,label))
+            del agent
+            del ex_set
+            del features
+    learning_set = PortfolioExampleSet(types)
+    learning_set.add_example_list(example_set)
+    with open(args.output[0],'w') as fout:
+        fout.write("#Portfolio Prediction Training Set\n")
+        fout.write("#Built on ",date.today(),"\n")
+        fout.write("#Total types: ",len(types))
+        fout.write("#Total Number of Example Sets: ",len(example_set),"\n")
+        fout.write("#Largest Number of Examples per Example Set: ",ex_set_size,"\n")
+        learning_set.to_file(fout)
+
+def main_build_portfolio_classifier(args):
+    ex_set = parse_protfolio_example_file(args.ex_file[0])
+    labels = ex_set.labels
+    config = parse_configuration(args.config[0])
+    learn_device = None
+    if torch.cuda.is_available():
+        learn_device = torch.device('cuda')
+    else:
+        learn_device = torch.device('cpu')
+    layers = [256 for i in range(max(0,args.layers[0]))]
+    layers.insert(0,6)
+    layers.append(len(labels))
+    best_classifier = None
+    best_perf = 0.0
+    for i in range(10):
+        start = time()
+        classifier = train_neural_portfolio(ex_set,layers,3000,learn_device)
+        training_perf = evaluate_portfolio(tain,learner,labels,learn_device)
+        torch.cuda.empty_cache()
+        print(time()-start)
+        if training_perf > best_perf or best_classifier is None:
+            best_classifier = classifier
+            best_perf = training_perf
+    print(best_perf)
+    torch.save(best_classifier,args.nn_file[0])
+    with open(args.labels_file[0],'w') as fout:
+        fout.write(','.join(labels))
+    return
+
+def learn_RPF(ex_set, domain):
+    info = {}
+    info['clauses'] = 5
+    info['literals'] = 5
+    info['ranks'] = 7
+    resets = 5
+    best_model = None
+    best_perf = 0
+    for i in range(resets):
+        learner = RankingPrefFormula.random(domain, info)
+        learner = learn_SA(learner, ex_set)
+        perf = evaluate_rep(ex_set,learner)
+        if perf > best_perf or best_model is None:
+            best_model = learner
+            best_perf = perf
+    return best_model
+
+def learn_ASO(ex_set, domain):
+    info = {}
+    info['ranks'] = 5
+    info['rules'] = 5
+    info['formulas'] = 7
+    info['clauses'] = 5
+    info['literals'] = 5
+    resets = 5
+    best_model = None
+    best_perf = 0
+    for i in range(resets):
+        learner = ASO.random(domain, info)
+        learner = learn_SA(learner, ex_set)
+        perf = evaluate_rep(ex_set,learner)
+        if perf > best_perf or best_model is None:
+            best_model = learner
+            best_perf = perf
+    return best_model
+
+def main_test_portfolio_learner(args):
+    # Build learner selector dictionary
+    learning_algorithms = {}
+    learning_algorithms['LPM'] = LPM.learn_greedy
+    learning_algorithms['RPF'] = learn_RPF
+    learning_algorithms['ASO'] = learn_ASO
+    test_order = learning_algorithms.keys().sort()
+    # Load classifier and labels
+    classifier = torch.load(args.nn_file[0])
+    classifier.eval()
+    labels = []
+    with open(args.labels_file[0],'r') as fin:
+        data = fin.read()
+        data = data.split("\n")
+        for line in data:
+            line = line.strip()
+            if line[0] != "#":
+                labels = line.split(',')
+                labels = list(map(lambda x: s.strip(),labels))
+                break
+
+    # Generate test example sets
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    examples_per_set = 100
+    testing_example_sets = []
+    domain = Domain(8,[2 for i in range(8)])
+    for agent_type in agent_types:
+        agent = make_agent_scratch(agent_type, domain)
+        ex_set = build_example_set(agent,examples_per_set,domain)
+        testing_example_sets.append(ex_set)
+    # Classify and learn
+    data = []
+    for ex_set in testing_example_sets:
+        data_line = []
+        features = ex_set.get_feature_set()
+        label = classifier.forward_squash(features)
+        current = 0
+        for j in range(len(label)):
+            if label[j] > label[current]:
+                current = j
+        prediction = labels[current]
+        data_line.append(prediction)
+        # Select learning algorithm
+        learn_alg = None
+        if prediction in learning_algorithms:
+            learn_alg = learning_algorithms[prediction]
+        else:
+            learn_alg = learn_ASO
+        model = learn_alg(ex_set,domain)
+        perf = evaluate_rep(ex_set,model)
+        data_line.append(perf)
+        # Test all learning algorithms separately
+        for lang in test_order:
+            model = learning_algorithms[lang]
+            perf = evaluate_rep(ex_set,model)
+            data_line.append(perf)
+        data_line = list(map(lambda x: str(x),data_line))
+        data_line = ','.join(data_line)
+        data.append(data_line)
+    # Report data
+    des_str = ["Choice,Portfolio"]
+    des_str.extend(test_order)
+    des_str = ','.join(des_str)
+    with open(args.output[0],'w') as fout:
+        fout.puts(des_str)
+        for data_line in data:
+            fout.write(data_line,"\n")
+    return
 
 
 # main for learning lpms
@@ -1207,6 +1379,17 @@ def make_agent(agent, types, domain):
     return (None, 0)
 
 # Precond:
+#   type is a valid Agent type class specifier.
+#   domain is the domain of the agents.
+#
+# Postcond:
+#   Returns tuple of:
+#       1) A valid random Agent object of the type specfied by agent.
+#       2) The number of examples to create.
+def make_agent_scratch(type, domain):
+    return Agent(type.random(domain,type.random_info(domain)),domain)
+
+# Precond:
 #   agent is a valid Agent object.
 #   size is the number of examples in the example set.
 #   domain is the domain of the agent.
@@ -1264,12 +1447,44 @@ def build_example_set_multi(agents, domain):
         del pairs
     return result
 
+# Precond:
+#   filename is the name of a valud portfolio example file.
+#
+# Postcond:
+#   Parses a portfolio example file and returns a PortfolioExampleSet object.
+def parse_protfolio_example_file(filename):
+    ex_set = []
+    labels = []
+    with open(filename,'r') as fin:
+        line = fin.readline()
+        while line:
+            line = line.strip()
+            if line[0] != '#':
+                if line.startswith("LABELS"):
+                    line = line.split(':')[1].strip()
+                    labels = line.split(',')
+                elif line.startswith("EX"):
+                    line = line.split(':')[1].strip()
+                    line = line.split(',')
+                    label = line[0].strip()
+                    vec = line[1].strip()
+                    vec = vec.split(';')
+                    vec = list(map(lambda x: float(x),vec))
+                    ex_set.append(PortfolioExample(vec,label))
+            line = fin.readline()
+    result = PortfolioExampleSet(labels)
+    result.add_example_list(ex_set)
+    return result
+
 def build_parser():
     parser = argparse.ArgumentParser(description="Automatically generate examples from randomly built synthetic agents.")
     parser.add_argument('-p', dest='problem', metavar='n', type=int, nargs=2, default=[1,1], help='Specified which problem/subproblem to run.')
+    parser.add_argument('-e', dest='ex_file', metavar='filename', type=str, nargs=1, help='Name of the example file to use for training.', default='a.ex')
     parser.add_argument('-l', dest='layers', metavar='n', type=int, nargs=1, default=[3], help='The number of neural net layers')
-    parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.exs')
+    parser.add_argument('-i', dest='learn_conf', metavar='filename', type=str, nargs=1, help='Name of the learner configuration file.', default='a.config')
     parser.add_argument('-o', dest='output', metavar='filename', type=str, nargs=1, help='Name of the output file.', default='a.exs')
+    parser.add_argument('-n', dest='nn_file', metavar='filename', type=str, nargs=1, help='NN file (I/O as needed).', default=['a.nn'])
+    parser.add_argument('-m', dest='labels_file', metavar='filename', type=str, nargs=1, help='Label file (I/O as needed).', default=['a.labels'])
     parser.add_argument('config', metavar='filename', type=str, nargs=1, help="The config file to use.")
     return parser
 
@@ -1322,15 +1537,25 @@ if __name__=="__main__":
             main_build_neighbor_monte_carlo(args)
         elif args.problem[1] == 3:
             main_hillclimb_rr(args)
-        if args.problem[1] == 4:
+        elif args.problem[1] == 4:
             main_nn_portfolio(args)
-        if args.problem[1] == 5:
+        elif args.problem[1] == 5:
             main_nn_full_portfolio(args)
-        if args.problem[1] == 6:
+        elif args.problem[1] == 6:
             main_nn_portfolio_gcn(args)
-        if args.problem[1] == 7:
+        elif args.problem[1] == 7:
             main_nn_portfolio_gcn_full(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
+    elif args.problem[0] == 5:
+        if args.problem[1] == 1:
+            main_build_portfolio_training_set(args)
+        elif args.problem[1] == 2:
+            main_build_portfolio_classifier(args)
+        elif args.problem[1] == 3:
+            main_test_portfolio_learner(args)
+        else:
+            print("Error: Unknown/Unavailable Subproblem.")
+
     else:
         print("Error: Unknown/Unavailable Problem.")

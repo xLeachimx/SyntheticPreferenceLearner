@@ -43,3 +43,13 @@ class PortfolioExample:
     #   ONLY compares alterantives and the relation.
     def __eq__(self,other):
         return self.feature == other.feature and self.label == other.label
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns a string representing the example.
+    def to_s(self):
+        str_feature = list(map(lambda x: str(x),self.feature))
+        str_feature = ';'.join(str_feature)
+        return ','.join(str(self.label),str_feature)

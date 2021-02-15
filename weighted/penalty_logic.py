@@ -109,6 +109,19 @@ class PenaltyLogic:
         return result
 
     # Precond:
+    #  domain is a valid Domain object.
+    #
+    # Postcond:
+    #   Returns a random info batch for generation.
+    @staticmethod
+    def random_info(domain):
+        info = {}
+        info['formulas'] = randint(3,7)
+        info['clauses'] = randint(1,5)
+        info['literals'] = randint(1,5)
+        return info
+
+    # Precond:
     #   domain is a valid Domain object.
     #   info is a valid dictionary (data unused, but important for typing).
     #

@@ -22,6 +22,7 @@ def generate_CPYNet(info, domain):
     uid = uuid4()
     dir = 'temp_cp' + str(uid)
     call_str = "gencpnet "
+    call_str += '-q '
     call_str += '-c ' + str(info['indegree'])
     call_str += ' -d ' + str(domain.attr_length_largest())
     call_str += ' -n ' + str(domain.length())

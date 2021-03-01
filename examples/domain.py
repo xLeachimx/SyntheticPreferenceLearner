@@ -58,6 +58,21 @@ class Domain:
         return result
 
     # Precond:
+    #   size is the number of alternatives to select.
+    #
+    # Postcond:
+    #   Returns a random sampling of alternatives.
+    def sample(self, size):
+        alts = []
+        for i in range(size):
+            temp = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+            while temp in alts:
+                temp = Alternative([randint(1,self.value[i]) for i in range(self.attributes)])
+            alts.append(temp)
+        return alts
+
+
+    # Precond:
     #   None.
     #
     # Postcond:
@@ -181,3 +196,14 @@ class Domain:
     def __str__(self):
         str_vals = list(map(lambda x: str(x), self.value))
         return ' '.join(['D', str(self.attributes), ' '.join(str_vals)])
+
+    # Precond:
+    #   None.
+    #
+    # Postcond:
+    #   Returns the number of attribute-value pairs.
+    def pair_length(self):
+        total = 0
+        for i in range(self.attributes):
+            total += self.attr_length(i)
+        return total

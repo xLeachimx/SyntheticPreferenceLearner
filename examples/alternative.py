@@ -29,6 +29,14 @@ class Alternative:
         return self.values[index]
 
     # Precond:
+    #   None.
+    #
+    # P0ostcond:
+    #   Returns the alternative as a list.
+    def to_list(self):
+        return self.values
+
+    # Precond:
     #   index is an integer representing the attribute index.
     #   value is an integer represent the new value of the attribute.
     #

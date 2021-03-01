@@ -34,6 +34,15 @@ class Agent:
         return Example(alt1,alt2,relation,self.domain,self.id)
 
     # Precond:
+    #   alt1 is a valid Alternative object.
+    #   alt2 is a valid Alternative object.
+    #
+    # Postcond:
+    #   Returns the relation between the two alternatives.
+    def relation(self, alt1, alt2):
+        return self.model.compare(alt1,alt2)
+
+    # Precond:
     #   None.
     #
     # Postcond:

@@ -69,8 +69,8 @@ def train_neural_preferences(ex_set, layers, epochs, domain, device=None):
     # criterion = nn.L1Loss()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(result.parameters(), lr=0.01)
-    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
-    scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=100)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+    # scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=100)
     for epoch in range(epochs):
         globalLoss = 0.0
         for examples in DataLoader(dataset=ex_set, batch_size=10, pin_memory=True):

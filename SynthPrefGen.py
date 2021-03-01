@@ -467,6 +467,42 @@ def main_nn_portfolio_gcn_full(args):
     with open(args.output[0],'a') as fout:
         fout.write(',(' + temp + ')')
 
+def learn_RPF(ex_set, domain):
+    info = {}
+    info['clauses'] = 2
+    info['literals'] = 2
+    info['ranks'] = 7
+    resets = 5
+    best_model = None
+    best_perf = 0
+    for i in range(resets):
+        learner = RankingPrefFormula.random(domain, info)
+        learner = learn_SA(learner, ex_set)
+        perf = evaluate_rep(ex_set,learner)
+        if perf > best_perf or best_model is None:
+            best_model = learner
+            best_perf = perf
+    return best_model
+
+def learn_ASO(ex_set, domain):
+    info = {}
+    info['ranks'] = 3
+    info['rules'] = 3
+    info['formulas'] = 7
+    info['clauses'] = 2
+    info['literals'] = 2
+    resets = 5
+    best_model = None
+    best_perf = 0
+    for i in range(resets):
+        learner = ASO.random(domain, info)
+        learner = learn_SA(learner, ex_set)
+        perf = evaluate_rep(ex_set,learner)
+        if perf > best_perf or best_model is None:
+            best_model = learner
+            best_perf = perf
+    return best_model
+
 def main_build_portfolio_training_set(args):
     config = parse_configuration(args.config[0])
     agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
@@ -485,6 +521,54 @@ def main_build_portfolio_training_set(args):
             # convert to feature vector
             features = ex_set.get_feature_set()
             label = holder.type.lower()
+            for i in range(len(agent_types)):
+                if label == agent_types[i].string_id().lower():
+                    if label not in types:
+                        types.append(label)
+            example_set.append(PortfolioExample(features,label))
+            del agent
+            del ex_set
+            del features
+    learning_set = PortfolioExampleSet(types)
+    learning_set.add_example_list(example_set)
+    with open(args.output[0],'w') as fout:
+        fout.write("#Portfolio Prediction Training Set\n")
+        fout.write("#Built on " + str(date.today())+"\n")
+        fout.write("#Total types: "+str(len(types))+"\n")
+        fout.write("#Total Number of Example Sets: "+str(len(example_set))+"\n")
+        fout.write("#Largest Number of Examples per Example Set: "+str(ex_set_size)+"\n")
+        learning_set.to_file(fout)
+
+def main_build_portfolio_training_set_smart(args):
+    config = parse_configuration(args.config[0])
+    agent_types = [LPM, RankingPrefFormula, PenaltyLogic, WeightedAverage, CPnet, CLPM, LPTree, ASO]
+    copies = 25
+    types = []
+    example_set = []
+    ex_set_size = 0
+    learning_algorithms = {}
+    learning_algorithms['LPM'] = LPM.learn_greedy
+    learning_algorithms['RPF'] = learn_RPF
+    learning_algorithms['ASO'] = learn_ASO
+    # Generate example sets
+    for _ in range(copies):
+        for holder in config[1]:
+            # build agent
+            agent = make_agent(holder,agent_types,config[0])
+            # build example_set
+            ex_set = build_example_set(agent[0],agent[1],config[0])
+            ex_set_size = max(ex_set_size,agent[1])
+            # convert to feature vector
+            features = ex_set.get_feature_set()
+            best_perf = 0
+            best_model = 'LPM'
+            for lang in learning_algorithms.keys():
+                model = learning_algorithms[lang](ex_set,domain)
+                perf = evaluate_rep(ex_set,model)
+                if perf > best_perf:
+                    best_model = lang
+                data_line.append(perf)
+            label = best_model.lower()
             for i in range(len(agent_types)):
                 if label == agent_types[i].string_id().lower():
                     if label not in types:
@@ -531,42 +615,6 @@ def main_build_portfolio_classifier(args):
     with open(args.labels_file[0],'w') as fout:
         fout.write(','.join(labels))
     return
-
-def learn_RPF(ex_set, domain):
-    info = {}
-    info['clauses'] = 2
-    info['literals'] = 2
-    info['ranks'] = 7
-    resets = 5
-    best_model = None
-    best_perf = 0
-    for i in range(resets):
-        learner = RankingPrefFormula.random(domain, info)
-        learner = learn_SA(learner, ex_set)
-        perf = evaluate_rep(ex_set,learner)
-        if perf > best_perf or best_model is None:
-            best_model = learner
-            best_perf = perf
-    return best_model
-
-def learn_ASO(ex_set, domain):
-    info = {}
-    info['ranks'] = 3
-    info['rules'] = 3
-    info['formulas'] = 7
-    info['clauses'] = 2
-    info['literals'] = 2
-    resets = 5
-    best_model = None
-    best_perf = 0
-    for i in range(resets):
-        learner = ASO.random(domain, info)
-        learner = learn_SA(learner, ex_set)
-        perf = evaluate_rep(ex_set,learner)
-        if perf > best_perf or best_model is None:
-            best_model = learner
-            best_perf = perf
-    return best_model
 
 def main_test_portfolio_learner(args):
     # Build learner selector dictionary
@@ -1562,6 +1610,8 @@ if __name__=="__main__":
             main_build_portfolio_classifier(args)
         elif args.problem[1] == 3:
             main_test_portfolio_learner(args)
+        elif args.problem[1] == 4:
+            main_build_portfolio_training_set_smart(args)
         else:
             print("Error: Unknown/Unavailable Subproblem.")
 

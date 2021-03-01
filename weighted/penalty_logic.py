@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 import random
+from random import randint
 import math
 from utility.pref_logic import PrefFormula
 from examples.relation import Relation

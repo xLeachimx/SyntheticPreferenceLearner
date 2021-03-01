@@ -126,6 +126,6 @@ class PortfolioExampleSet(Dataset):
     def to_file(self,fout):
         str_labels = list(map(lambda x: str(x),self.labels))
         str_labels = ','.join(str_labels)
-        fout.write("LABELS:",str_labels,"\n")
+        fout.write("LABELS:"+str_labels+"\n")
         for example in self.examples:
-            fout.write("EX:",example.to_s(),"\n")
+            fout.write("EX:"+example.to_s()+"\n")

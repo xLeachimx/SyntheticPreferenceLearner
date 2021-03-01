@@ -52,4 +52,4 @@ class PortfolioExample:
     def to_s(self):
         str_feature = list(map(lambda x: str(x),self.feature))
         str_feature = ';'.join(str_feature)
-        return ','.join(str(self.label),str_feature)
+        return ','.join([str(self.label),str_feature])

@@ -21,6 +21,7 @@ class ExampleSet(Dataset):
     #   Builds a new empty ExampleSet object
     def __init__(self):
         self.examples = {}
+        self.lang = None
         # self.examples[0] = []
 
     # Precond:
@@ -266,7 +267,7 @@ class ExampleSet(Dataset):
         dom_count = float(dom_count)
         for i in range(len(proportions)):
             result.append(proportions[i]/size)
-        for i in range(len(attr_val_dom)):
-            for j in range(len(attr_val_dom[i])):
-                result.append(attr_val_dom[i][j]/dom_count)
+        # for i in range(len(attr_val_dom)):
+        #     for j in range(len(attr_val_dom[i])):
+        #         result.append(attr_val_dom[i][j]/dom_count)
         return result

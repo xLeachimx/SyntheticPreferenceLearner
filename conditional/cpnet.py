@@ -11,6 +11,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('..'))
 
 import random
+from random import randint
 from .cpynet import CPYnet, generate_CPYNet
 from utility.preference_graph import PreferenceGraph
 from utility.conditional_preferences import ConditionalPreference

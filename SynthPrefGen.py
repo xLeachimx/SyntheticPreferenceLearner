@@ -497,16 +497,15 @@ def main_build_portfolio_training_set(args):
     learning_set.add_example_list(example_set)
     with open(args.output[0],'w') as fout:
         fout.write("#Portfolio Prediction Training Set\n")
-        fout.write("#Built on ",date.today(),"\n")
-        fout.write("#Total types: ",len(types))
-        fout.write("#Total Number of Example Sets: ",len(example_set),"\n")
-        fout.write("#Largest Number of Examples per Example Set: ",ex_set_size,"\n")
+        fout.write("#Built on " + str(date.today())+"\n")
+        fout.write("#Total types: "+str(len(types))+"\n")
+        fout.write("#Total Number of Example Sets: "+str(len(example_set))+"\n")
+        fout.write("#Largest Number of Examples per Example Set: "+str(ex_set_size)+"\n")
         learning_set.to_file(fout)
 
 def main_build_portfolio_classifier(args):
     ex_set = parse_protfolio_example_file(args.ex_file[0])
     labels = ex_set.labels
-    config = parse_configuration(args.config[0])
     learn_device = None
     if torch.cuda.is_available():
         learn_device = torch.device('cuda')
@@ -520,13 +519,14 @@ def main_build_portfolio_classifier(args):
     for i in range(10):
         start = time()
         classifier = train_neural_portfolio(ex_set,layers,3000,learn_device)
-        training_perf = evaluate_portfolio(tain,learner,labels,learn_device)
-        torch.cuda.empty_cache()
         print(time()-start)
+        training_perf = evaluate_portfolio(ex_set,classifier,labels,learn_device)
+        torch.cuda.empty_cache()
         if training_perf > best_perf or best_classifier is None:
             best_classifier = classifier
             best_perf = training_perf
     print(best_perf)
+    best_classifier.to(torch.device('cpu'))
     torch.save(best_classifier,args.nn_file[0])
     with open(args.labels_file[0],'w') as fout:
         fout.write(','.join(labels))
@@ -534,8 +534,8 @@ def main_build_portfolio_classifier(args):
 
 def learn_RPF(ex_set, domain):
     info = {}
-    info['clauses'] = 5
-    info['literals'] = 5
+    info['clauses'] = 2
+    info['literals'] = 2
     info['ranks'] = 7
     resets = 5
     best_model = None
@@ -551,11 +551,11 @@ def learn_RPF(ex_set, domain):
 
 def learn_ASO(ex_set, domain):
     info = {}
-    info['ranks'] = 5
-    info['rules'] = 5
+    info['ranks'] = 3
+    info['rules'] = 3
     info['formulas'] = 7
-    info['clauses'] = 5
-    info['literals'] = 5
+    info['clauses'] = 2
+    info['literals'] = 2
     resets = 5
     best_model = None
     best_perf = 0
@@ -574,9 +574,11 @@ def main_test_portfolio_learner(args):
     learning_algorithms['LPM'] = LPM.learn_greedy
     learning_algorithms['RPF'] = learn_RPF
     learning_algorithms['ASO'] = learn_ASO
-    test_order = learning_algorithms.keys().sort()
+    test_order = list(learning_algorithms.keys())
+    test_order.sort()
     # Load classifier and labels
     classifier = torch.load(args.nn_file[0])
+    classifier.to(torch.device('cpu'))
     classifier.eval()
     labels = []
     with open(args.labels_file[0],'r') as fin:
@@ -586,7 +588,7 @@ def main_test_portfolio_learner(args):
             line = line.strip()
             if line[0] != "#":
                 labels = line.split(',')
-                labels = list(map(lambda x: s.strip(),labels))
+                labels = list(map(lambda x: x.strip(),labels))
                 break
 
     # Generate test example sets
@@ -594,15 +596,26 @@ def main_test_portfolio_learner(args):
     examples_per_set = 100
     testing_example_sets = []
     domain = Domain(8,[2 for i in range(8)])
+    repeat = 25
+    print('Building examples...')
     for agent_type in agent_types:
-        agent = make_agent_scratch(agent_type, domain)
-        ex_set = build_example_set(agent,examples_per_set,domain)
-        testing_example_sets.append(ex_set)
+        for i in range(repeat):
+            agent = make_agent_scratch(agent_type, domain)
+            ex_set = build_example_set(agent,examples_per_set,domain)
+            ex_set.lang = agent_type.string_id()
+            testing_example_sets.append(ex_set)
     # Classify and learn
     data = []
+    print('Testing...')
+    des_str = ["Original,Choice,Portfolio"]
+    des_str.extend(test_order)
+    des_str = ','.join(des_str)
+    with open(args.output[0], 'w') as fout:
+        fout.write(des_str+"\n")
     for ex_set in testing_example_sets:
-        data_line = []
-        features = ex_set.get_feature_set()
+        start = time()
+        data_line = [ex_set.lang]
+        features = torch.tensor(ex_set.get_feature_set())
         label = classifier.forward_squash(features)
         current = 0
         for j in range(len(label)):
@@ -619,22 +632,18 @@ def main_test_portfolio_learner(args):
         model = learn_alg(ex_set,domain)
         perf = evaluate_rep(ex_set,model)
         data_line.append(perf)
+        print('Done prediction: ', time()-start)
         # Test all learning algorithms separately
         for lang in test_order:
-            model = learning_algorithms[lang]
+            model = learning_algorithms[lang](ex_set,domain)
             perf = evaluate_rep(ex_set,model)
             data_line.append(perf)
         data_line = list(map(lambda x: str(x),data_line))
         data_line = ','.join(data_line)
-        data.append(data_line)
-    # Report data
-    des_str = ["Choice,Portfolio"]
-    des_str.extend(test_order)
-    des_str = ','.join(des_str)
-    with open(args.output[0],'w') as fout:
-        fout.puts(des_str)
-        for data_line in data:
-            fout.write(data_line,"\n")
+        with open(args.output[0],'a') as fout:
+            fout.write(data_line+"\n")
+        print('Done all: ',time()-start)
+        # data.append(data_line)
     return
 
 
@@ -1240,7 +1249,6 @@ def evaluate_portfolio(ex_set, learner, labels, device=None):
             inp = inp.to(device)
         label = learner.forward_squash(inp)#.to(torch.device('cpu'))
         current = 0
-        print(label)
         for j in range(len(label)):
             if label[j] > label[current]:
                 current = j

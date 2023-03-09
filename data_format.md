@@ -66,3 +66,12 @@ Below we provide an ordered list of each data pill for each type of data run.
   1. Training Accuracy (proportion of correctly decided examples.)
   2. Validation Accuracy (proportion of correctly decided examples.)
   3. Full Accuracy proportion of correctly decided examples compared against the original agent.)
+
+5. When learning example set classification:
+  1. Training Accuracy (proportion of correctly decided examples.)
+  2. Validation Accuracy (proportion of correctly decided examples.)
+
+6. When learning example set classification (complete relation information used for learning):
+  1. Training Accuracy (proportion of correctly decided examples.)
+  2. Validation Accuracy (proportion of correctly decided examples.)
+  3. Testing Accuracy on "small" example sets (proportion of correctly decided examples.)

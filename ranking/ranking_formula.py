@@ -124,6 +124,19 @@ class RankingPrefFormula:
         return result
 
     # Precond:
+    #  domain is a valid Domain object.
+    #
+    # Postcond:
+    #   Returns a random info batch for generation.
+    @staticmethod
+    def random_info(domain):
+        info = {}
+        info['ranks'] = randint(3,7)
+        info['clauses'] = randint(1,5)
+        info['literals'] = randint(1,5)
+        return info
+
+    # Precond:
     #   domain is a valid Domain object.
     #   info is a valid dictionary with the following keys:
     #       clauses is the number of clauses per rank.

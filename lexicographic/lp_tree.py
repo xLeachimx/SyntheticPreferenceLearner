@@ -109,6 +109,20 @@ class LPTree:
         return result
 
     # Precond:
+    #  domain is a valid Domain object.
+    #
+    # Postcond:
+    #   Returns a random info batch for generation.
+    @staticmethod
+    def random_info(domain):
+        info = {}
+        info['cp'] = 1 if random() > 0.5 else 0
+        info['ci'] = 1 if random() > 0.5 else 0
+        info['c_limit'] = randint(0,domain.length())
+        info['s_limit'] = randint(0,domain.length())
+        return info
+
+    # Precond:
     #   domain is a valid Domain object.
     #   before is a list of the attribute which have already been used.
     #   current is the list of attributes yet to be used.

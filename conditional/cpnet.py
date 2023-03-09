@@ -11,6 +11,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('..'))
 
 import random
+from random import randint
 from .cpynet import CPYnet, generate_CPYNet
 from utility.preference_graph import PreferenceGraph
 from utility.conditional_preferences import ConditionalPreference
@@ -151,6 +152,17 @@ class CPnet:
         ind = simp_net.induced()
         ind.transitive()
         return ind
+
+    # Precond:
+    #  domain is a valid Domain object.
+    #
+    # Postcond:
+    #   Returns a random info batch for generation.
+    @staticmethod
+    def random_info(domain):
+        info = {}
+        info['indegree'] = randint(0,domain.length())
+        return info
 
     # Precond:
     #   domain is a valid Domain object.
